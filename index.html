@@ -31,6 +31,7 @@
   --stay:#2A3A44; --stay-ink:#F4F8F6; --brk:#8F6206; --brk-ink:#FFF8EC;
   --hi:#48C78E; --mid:#E4AE40; --lo:#76837D; --danger:#F2867E; color-scheme:dark}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.45;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .wrap{max-width:620px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;display:grid;gap:16px}
@@ -53,7 +54,7 @@ button,input,select{font:inherit;color:inherit}
 
 /* Action card */
 .card{border-radius:16px;padding:18px 18px 16px;display:grid;gap:12px;background:var(--sign);color:var(--sign-ink);box-shadow:inset 0 0 0 4px var(--sign),inset 0 0 0 6px var(--sign-ink)}
-.card[data-a="stay"],.card[data-a="sea-stay"]{background:var(--stay);color:var(--stay-ink);box-shadow:inset 0 0 0 4px var(--stay),inset 0 0 0 6px var(--stay-ink)}
+.card[data-a="stay"],.card[data-a="sea-stay"],.card[data-a="end"]{background:var(--stay);color:var(--stay-ink);box-shadow:inset 0 0 0 4px var(--stay),inset 0 0 0 6px var(--stay-ink)}
 .card[data-a="break"]{background:var(--brk);color:var(--brk-ink);box-shadow:inset 0 0 0 4px var(--brk),inset 0 0 0 6px var(--brk-ink)}
 .card .verb{font-size:15px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.92}
 .card .dest{font-size:clamp(28px,8vw,40px);font-weight:900;line-height:1.05;letter-spacing:.005em;text-wrap:balance;margin:0}
@@ -64,7 +65,7 @@ button,input,select{font:inherit;color:inherit}
 .card ul{margin:0;padding-left:20px;display:grid;gap:4px;font-size:16px}
 .navrow{display:flex;gap:10px;flex-wrap:wrap}
 .nav{flex:1 1 140px;text-align:center;text-decoration:none;font-weight:900;font-size:18px;border-radius:12px;padding:13px 14px;background:var(--sign-ink);color:var(--sign);min-height:52px;display:flex;align-items:center;justify-content:center}
-.card[data-a="stay"] .nav,.card[data-a="sea-stay"] .nav{color:var(--stay)}
+.card[data-a="stay"] .nav,.card[data-a="sea-stay"] .nav,.card[data-a="end"] .nav{color:var(--stay)}
 .card[data-a="break"] .nav{color:var(--brk)}
 .nav.alt{background:transparent;color:inherit;border:2px solid currentColor}
 .card .status{font-size:15px;opacity:.9}
@@ -134,12 +135,17 @@ details.panel[open] summary::after{content:' –'}
     <div id="ups"></div>
   </section>
 
+  <section class="panel" id="venuePanel">
+    <h2>Venues nearby</h2>
+    <div id="venues" class="small">Comedy clubs, theaters, music venues and cinemas within about 900 m, with the times they usually let out. Tap one to check tonight's shows.</div>
+  </section>
+
   <section class="panel" id="foodPanel">
     <div class="inline" style="justify-content:space-between">
-      <h2>Food &amp; chargers nearby</h2>
+      <h2>Food nearby</h2>
       <button class="btn ghost" id="foodBtn" type="button">Find</button>
     </div>
-    <div id="food" class="small">Takeout spots within about a kilometer, plus the closest Tesla Superchargers.</div>
+    <div id="food" class="small">Takeout and quick-food spots within about a kilometer.</div>
   </section>
 
   <section class="panel">
@@ -160,11 +166,7 @@ details.panel[open] summary::after{content:' –'}
       <div class="f">
         <label>Home</label>
         <div class="inline"><button class="btn ghost" id="setHome" type="button">Set home to where I am</button><button class="btn ghost" id="clearHome" type="button">Clear</button></div>
-        <div class="small" id="homeNote">Not set. Used for "head home" at the end of your shift. Stored only on this phone.</div>
-      </div>
-      <div class="f">
-        <label for="shiftEnd">End my shift at</label>
-        <input id="shiftEnd" type="time">
+        <div class="small" id="homeNote">Not set. Used for a one-tap route home when it suggests calling it a night. Stored only on this phone.</div>
       </div>
       <div class="f">
         <label for="navApp">Navigate with</label>

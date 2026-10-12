@@ -260,6 +260,46 @@
     return out;
   }
 
+
+  // ---------- small venues near the driver (from OpenStreetMap, fetched by the app) ----------
+  // Typical let-out times by venue kind and weekday (minutes after midnight; > 1440 = after midnight).
+  const H = (h, m) => h * 60 + (m || 0);
+  function venueLetouts(kind, dow) {
+    const thuSun = [0, 4, 5, 6].includes(dow), friSat = dow === 5 || dow === 6;
+    switch (kind) {
+      case 'comedy':  return thuSun ? [H(21), H(23, 15)] : dow === 3 ? [H(21)] : [];
+      case 'theatre': return [...(dow >= 2 && dow <= 6 ? [H(22)] : []), ...(dow === 6 || dow === 0 ? [H(16, 30)] : [])];
+      case 'music':   return [H(23, 15)];
+      case 'club':    return friSat ? [H(26)] : thuSun ? [H(25)] : [];
+      case 'cinema':  return [H(21, 30), H(23, 45)];
+      case 'arts':    return thuSun ? [H(21, 30)] : [];
+      default:        return [];
+    }
+  }
+  const VENUE_BOOST = { comedy: 1.15, theatre: 1.2, music: 1.15, club: 1.2, cinema: 1.08, arts: 1.1 };
+  // Let-outs within [-10, +35] min of T, for venues within 600 m of the driver.
+  function venuesNow(ctx, T) {
+    const hits = [];
+    for (const v of ctx.venues || []) {
+      if (v.dist == null || v.dist > 0.6) continue;
+      const today = venueLetouts(v.kind, ctx.dow);
+      const yday = venueLetouts(v.kind, (ctx.dow + 6) % 7).map(m => m - 1440);
+      for (const out of [...today, ...yday]) {
+        if (out - T >= -10 && out - T <= 35) { hits.push({ v, out }); break; }
+      }
+    }
+    return hits;
+  }
+  function venuesEffect(ctx, T) {
+    const hits = venuesNow(ctx, T);
+    let mult = 1; const why = [];
+    for (const h of hits.slice(0, 3)) {
+      mult *= VENUE_BOOST[h.v.kind] || 1.1;
+      why.push(`${h.v.name} (${Math.round(h.v.dist * 1000)} m away) usually lets out around ${fmtMin(h.out)}`);
+    }
+    return { mult: Math.min(mult, 1.35), why, hits };
+  }
+
   // ---------- main ----------
   function recommend(ctx) {
     const now = ctx.h * 60 + ctx.m;
@@ -271,6 +311,8 @@
     const prox = nz.inside ? 1 : 0.85;
 
     const hereVal = valueWindow(hereZone, now, ctx); hereVal.rate *= prox;
+    const ven = venuesEffect(ctx, now);
+    if (ven.mult > 1) { hereVal.rate *= ven.mult; hereVal.why = [...ven.why, ...hereVal.why]; }
     const cands = [];
     for (const z of ZONES) {
       if (z.id === here.id) continue;
@@ -286,21 +328,12 @@
     const upcoming = (ctx.events || []).filter(e => e.outMin != null && e.outMin >= now - 10 && e.outMin <= now + 240)
       .sort((a, b) => a.outMin - b.outMin);
 
-    const base = { here, hereInside: nz.inside, seattle: seattleHere, upcoming, alternatives: [] };
-
-    // Past the driver's chosen end time: go home.
-    if (ctx.settings && ctx.settings.shiftEnd && ctx.settings.homeLat != null) {
-      const end = toMin(ctx.settings.shiftEnd);
-      const late = end != null && (end >= 240 ? (now >= end || now < 240) : (now >= end && now < 240));
-      if (late) {
-        const home = { lat: ctx.settings.homeLat, lng: ctx.settings.homeLng, name: 'Home' };
-        return Object.assign(base, {
-          action: 'home', verb: 'Head home', target: home, travel: driveMinutes(loc, home, ctx), meter: null,
-          reasons: [`You set ${fmtMin(end)} as your end time. Take a ride going your way if one comes up.`],
-          alternatives: cands.slice(0, 3)
-        });
-      }
-    }
+    const base = { here, hereInside: nz.inside, seattle: seattleHere, upcoming, venueHits: ven.hits, alternatives: [] };
+    const home = ctx.settings && ctx.settings.homeLat != null ? { lat: ctx.settings.homeLat, lng: ctx.settings.homeLng, name: 'Home' } : null;
+    const endShift = (reasons) => Object.assign(base, {
+      action: 'end', verb: 'Consider calling it', target: home, travel: home ? driveMinutes(loc, home, ctx) : 0, meter: meter(Math.max(stay.rate, best ? best.rate : 0)),
+      reasons, alternatives: [stay, ...cands.slice(0, 2)]
+    });
 
     // At SEA: stay in the line or leave.
     if (here.id === 'sea' && nz.inside) {
@@ -348,14 +381,30 @@
         }
         if (future) break;
       }
+      if (future && future.ahead - future.travel > 90) {
+        return endShift([`Slow everywhere within reach for the next ${Math.round((future.ahead - future.travel) / 30) / 2} hours`,
+          `Next good window: ${future.zone.name} around ${fmtMin(now + future.ahead)}`, ...future.why.slice(0, 1)]);
+      }
       if (future) {
         const resumeAt = now + Math.max(0, future.ahead - future.travel);
+        if (future.zone.id === here.id) {
+          return Object.assign(base, {
+            action: 'break', verb: 'Take a break here', target: null, travel: 0, meter: meter(pick.rate), resumeAt,
+            reasons: ['Slow right now', `Requests here should pick up around ${fmtMin(now + future.ahead)}`, ...future.why.slice(0, 1)],
+            alternatives: cands.slice(0, 3)
+          });
+        }
         return Object.assign(base, {
           action: 'break', verb: 'Take a break', target: future.zone, travel: future.travel, meter: meter(pick.rate), resumeAt,
           reasons: [`Slow stretch here right now`, `Leave by ${fmtMin(resumeAt)} for ${future.zone.name} (${future.travel} min)`, ...future.why.slice(0, 2)],
           alternatives: cands.slice(0, 3)
         });
       }
+    }
+
+    if (pick.rate < 14) {
+      return endShift(['Nothing within reach looks worth the time for the next two hours',
+        best ? `If you keep going: ${best.zone.name}, ${best.travel} min away` : 'Nothing nearby stands out']);
     }
 
     if (!moveWins) {
@@ -371,6 +420,6 @@
     return Object.assign(base, { action: 'move', verb: 'Head to', target: best.zone, travel: best.travel, meter: meter(best.rate), reasons, alternatives: [stay, ...cands.slice(1, 3)] });
   }
 
-  const api = { recommend, nearestZone, driveMinutes, valueAt, seaIndex, prepareEvents, historyStats, daypart, km, fmtMin, toMin, meter, ZONE_BY_ID };
+  const api = { recommend, venueLetouts, nearestZone, driveMinutes, valueAt, seaIndex, prepareEvents, historyStats, daypart, km, fmtMin, toMin, meter, ZONE_BY_ID };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.NF_ENGINE = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -25,7 +25,8 @@
     loc: null, manual: null, label: null, city: null, cityIsSeattle: null,
     files: [], dataLoadedAt: 0, weather: null, weatherSummary: '', weatherAt: 0,
     lastRun: 0, running: false, rec: null,
-    settings: Object.assign({ navApp: 'google', shiftEnd: '', homeLat: null, homeLng: null }, store.get('settings', {})),
+    settings: Object.assign({ navApp: 'google', homeLat: null, homeLng: null }, store.get('settings', {})),
+    venues: [], venuesKey: null,
     checkins: store.get('checkins', []),
     queue: store.get('queue', null)
   };
@@ -88,6 +89,63 @@
     S.weatherSummary = now ? `${now.t}° · ${now.s}${now.pop >= 30 ? ` · ${now.pop}% rain` : ''}` : '';
   }
 
+
+  /* ---------- OpenStreetMap (Overpass) ---------- */
+  async function overpass(q) {
+    const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const ac = new AbortController(); const timer = setTimeout(() => ac.abort(), 15000);
+      try {
+        const r = await fetch(url, { signal: ac.signal });
+        clearTimeout(timer);
+        if (r.ok) return await r.json();
+        if (r.status !== 429 && r.status !== 504) throw new Error('http ' + r.status);
+      } catch (e) { clearTimeout(timer); if (attempt === 1) throw e; }
+      await new Promise(res => setTimeout(res, 2500));
+    }
+    throw new Error('unavailable');
+  }
+
+  /* ---------- venues nearby ---------- */
+  const KIND_LABEL = { comedy: 'Comedy club', theatre: 'Theater', music: 'Music venue', club: 'Nightclub', cinema: 'Cinema', arts: 'Arts venue' };
+  function venueKind(t) {
+    const name = t.name || '';
+    if (/comedy|laugh/i.test(name) || /comedy/i.test(t['theatre:genre'] || '')) return 'comedy';
+    return { theatre: 'theatre', cinema: 'cinema', nightclub: 'club', music_venue: 'music', events_venue: 'music', arts_centre: 'arts', concert_hall: 'arts' }[t.amenity] || null;
+  }
+  async function loadVenues(loc) {
+    const key = loc.lat.toFixed(3).slice(0, -1) + ',' + loc.lng.toFixed(3).slice(0, -1); // ~1 km cells
+    const cache = store.get('venues', {});
+    let list = cache[key] && Date.now() - cache[key].at < 12 * 3600000 ? cache[key].list : null;
+    if (!list) {
+      const c = `${loc.lat},${loc.lng}`;
+      const j = await overpass(`[out:json][timeout:15];(nwr(around:1200,${c})["amenity"~"^(theatre|cinema|nightclub|music_venue|arts_centre|events_venue|concert_hall)$"];nwr(around:1200,${c})["name"~"[Cc]omedy|[Ll]augh"];);out center 60;`);
+      const seen = new Set();
+      list = (j.elements || []).map(e => {
+        const t = e.tags || {}; const p = e.center || e; const kind = venueKind(t);
+        return kind && t.name && p.lat != null ? { name: t.name, kind, lat: p.lat, lng: p.lon, web: t.website || t['contact:website'] || null } : null;
+      }).filter(v => v && !seen.has(v.name) && seen.add(v.name));
+      const keys = Object.keys(cache); if (keys.length > 60) delete cache[keys[0]];
+      cache[key] = { at: Date.now(), list }; store.set('venues', cache);
+    }
+    S.venues = list.map(v => Object.assign({}, v, { dist: E.km(loc, v) })).filter(v => v.dist <= 0.9).sort((a, b) => a.dist - b.dist);
+  }
+  function renderVenues(r) {
+    const box = $('#venues');
+    if (!S.venues.length) { box.className = 'small'; box.textContent = 'No comedy clubs, theaters, music venues or cinemas mapped within about 900 m.'; return; }
+    const p = pt(); const now = p.h * 60 + p.m;
+    const hitNames = new Set((r && r.venueHits || []).map(h => h.v.name));
+    box.className = '';
+    box.innerHTML = S.venues.slice(0, 6).map(v => {
+      const outs = E.venueLetouts(v.kind, p.dow).filter(m => m > now - 30).map(m => E.fmtMin(m));
+      const link = safeLink(v.web) || `https://www.google.com/search?q=${encodeURIComponent(v.name + ' Seattle shows tonight')}`;
+      return `<div class="row"><span class="n">${esc(v.name)}${hitNames.has(v.name) ? ' <span class="tag sea">letting out soon</span>' : ''}</span>
+        <span class="d">${esc(KIND_LABEL[v.kind])} · ${Math.round(v.dist * 1000)} m${outs.length ? ` · usually out ~${esc(outs.join(', ~'))}` : ' · nothing typical left today'}</span>
+        <span class="r"><a class="go" href="${esc(link)}" target="_blank" rel="noopener">Shows ›</a></span></div>`;
+    }).join('') + '<p class="small">Let-out times are typical for this kind of venue. Tap Shows to check tonight’s schedule.</p>';
+  }
+  function safeLink(u) { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : null; } catch { return null; } }
+
   /* ---------- check-ins ---------- */
   function recordCheckin(loc, zoneId, manual) {
     const last = S.checkins[S.checkins.length - 1];
@@ -131,6 +189,7 @@
       recordCheckin(loc, nz.zone.id, loc.manual);
       compute();
       S.lastRun = Date.now();
+      loadVenues(loc).then(() => compute()).catch(() => { $('#venues').className = 'small'; $('#venues').textContent = 'Couldn\u2019t reach the map service for venues. It will try again on the next refresh.'; });
       if (!loc.manual) reverseGeocode(loc).then(g => { if (g) { S.label = g.label; S.city = g.city; S.cityIsSeattle = g.city ? g.city === 'Seattle' : null; compute(); } });
       else { S.label = null; S.city = null; S.cityIsSeattle = null; }
     } finally { S.running = false; $('#refresh').disabled = false; }
@@ -144,10 +203,12 @@
       data: S.files.find(f => f.date === p.ymd) || null,
       events: E.prepareEvents(S.files, p.ymd),
       weather: S.weather, history: E.historyStats(S.checkins),
-      settings: S.settings, queue: S.queue, cityIsSeattle: S.cityIsSeattle
+      settings: S.settings, queue: S.queue, cityIsSeattle: S.cityIsSeattle,
+      venues: S.venues
     };
     const rec = E.recommend(ctx); S.rec = rec;
     render(rec, ctx);
+    renderVenues(rec);
   }
 
   /* ---------- render ---------- */
@@ -173,15 +234,16 @@
     else if (r.action === 'stay') dest = r.hereInside ? `Wait in ${z.name}` : `Wait near ${z.name}`;
     else if (r.action === 'sea-stay') dest = r.estWait != null ? `About ${r.estWait} min wait` : 'Join the line';
     else if (r.action === 'break') dest = `Until ${E.fmtMin(r.resumeAt)}`;
-    else if (r.action === 'home') dest = 'Home';
+    else if (r.action === 'end') dest = 'Slow for the next couple of hours';
     if (r.travel) sub.push(`<span class="mono">${r.travel} min</span> drive`);
     if (r.meter) sub.push(dots(r.meter));
-    const target = r.action === 'home' ? r.target : (r.action === 'break' ? r.target : r.target);
+    const target = r.target;
     const navs = [];
     if (target && target.lat != null) {
       const app = S.settings.navApp;
-      navs.push(`<a class="nav" href="${esc(navUrl(target, app))}" target="_blank" rel="noopener">${r.action === 'break' ? 'Later: navigate' : 'Navigate'}</a>`);
+      navs.push(`<a class="nav" href="${esc(navUrl(target, app))}" target="_blank" rel="noopener">${r.action === 'break' ? 'Later: navigate' : r.action === 'end' ? 'Navigate home' : 'Navigate'}</a>`);
     }
+    if (r.action === 'end' && !target) r.reasons = [...r.reasons, 'Set your home in Settings for a one-tap route home'];
     if (r.action === 'break') navs.unshift(`<a class="nav alt" href="#foodPanel" id="cardFood">Food nearby</a>`);
     c.innerHTML = `<div class="verb">${esc(r.verb)}</div>
       <p class="dest">${esc(dest)}</p>
@@ -239,31 +301,22 @@
     if (!S.loc) { box.textContent = 'Need your location first.'; return; }
     box.textContent = 'Looking nearby…';
     const { lat, lng } = S.loc;
-    const q = `[out:json][timeout:15];(
-      nwr(around:1200,${lat},${lng})["amenity"~"^(fast_food|restaurant|cafe)$"]["takeaway"~"^(yes|only)$"];
-      nwr(around:900,${lat},${lng})["amenity"="fast_food"];
-      nwr(around:5000,${lat},${lng})["amenity"="charging_station"]["name"~"Tesla|Supercharger",i];
-      nwr(around:5000,${lat},${lng})["amenity"="charging_station"]["brand"~"Tesla",i];
-      nwr(around:5000,${lat},${lng})["amenity"="charging_station"]["operator"~"Tesla",i];
-    );out center 80;`;
+    const c = `${lat},${lng}`;
     try {
-      const r = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
-      if (!r.ok) throw new Error('http ' + r.status);
-      const j = await r.json();
+      const j = await overpass(`[out:json][timeout:15];(node(around:1000,${c})["amenity"~"^(fast_food|cafe|restaurant)$"];way(around:1000,${c})["amenity"~"^(fast_food|cafe|restaurant)$"];);out center 80;`);
       const seen = new Set();
       const items = (j.elements || []).map(e => {
         const t = e.tags || {}; const p = e.center || e;
-        return { name: t.name || t.brand || '', amenity: t.amenity, cuisine: t.cuisine, hours: t.opening_hours, lat: p.lat, lng: p.lon, charger: t.amenity === 'charging_station' };
-      }).filter(x => x.name && x.lat != null && !seen.has(x.name + x.lat.toFixed(4)) && seen.add(x.name + x.lat.toFixed(4)))
+        const quick = t.amenity === 'fast_food' || t.amenity === 'cafe' || /^(yes|only)$/.test(t.takeaway || '');
+        return { name: t.name || t.brand || '', amenity: t.amenity, cuisine: t.cuisine, hours: t.opening_hours, lat: p.lat, lng: p.lon, quick };
+      }).filter(x => x.name && x.lat != null && !seen.has(x.name) && seen.add(x.name))
         .map(x => Object.assign(x, { d: E.km(S.loc, x) }));
-      const food = items.filter(x => !x.charger).sort((a, b) => a.d - b.d).slice(0, 5);
-      const chargers = items.filter(x => x.charger).sort((a, b) => a.d - b.d).slice(0, 2);
-      if (!food.length && !chargers.length) { box.textContent = 'Nothing tagged nearby. Try again from a busier spot.'; return; }
+      const food = items.sort((a, b) => (b.quick - a.quick) || (a.d - b.d)).slice(0, 6).sort((a, b) => a.d - b.d);
+      if (!food.length) { box.textContent = 'Nothing mapped within a kilometer. Try again from a busier spot.'; return; }
       const row = x => `<div class="row"><span class="n">${esc(x.name)}</span>
-        <span class="d">${esc([x.charger ? 'Supercharger' : (x.cuisine || x.amenity || '').replace(/_/g, ' ').replace(/;/g, ', '), x.hours].filter(Boolean).join(' · '))}</span>
+        <span class="d">${esc([(x.cuisine || x.amenity || '').replace(/_/g, ' ').replace(/;/g, ', '), x.quick ? 'takeout' : '', x.hours].filter(Boolean).join(' · '))}</span>
         <span class="r"><span class="mono small">${x.d < 1 ? Math.round(x.d * 1000) + ' m' : x.d.toFixed(1) + ' km'}</span><a class="go" href="${esc(navUrl(x, S.settings.navApp))}" target="_blank" rel="noopener">Go ›</a></span></div>`;
-      box.innerHTML = (food.length ? food.map(row).join('') : '<p class="small">No takeout spots tagged within a kilometer.</p>')
-        + (chargers.length ? `<div class="label" style="margin-top:6px">Superchargers</div>${chargers.map(row).join('')}` : '');
+      box.innerHTML = food.map(row).join('');
       box.classList.remove('small');
     } catch {
       box.textContent = 'Couldn’t reach the map service. Try again in a minute.';
@@ -293,8 +346,6 @@
     catch { $('#homeNote').textContent = 'Couldn’t get your location to set home.'; }
   });
   $('#clearHome').addEventListener('click', () => { S.settings.homeLat = S.settings.homeLng = null; saveSettings(); homeNote(); compute(); });
-  $('#shiftEnd').value = S.settings.shiftEnd || '';
-  $('#shiftEnd').addEventListener('change', () => { S.settings.shiftEnd = $('#shiftEnd').value; saveSettings(); compute(); });
   $('#navApp').value = S.settings.navApp || 'google';
   $('#navApp').addEventListener('change', () => { S.settings.navApp = $('#navApp').value; saveSettings(); compute(); });
   let clearArmed = false;
