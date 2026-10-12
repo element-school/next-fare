@@ -10,7 +10,7 @@ It runs entirely in the browser. There is no server, no account, and no connecti
 
 - **Time of day and day of week**: a demand curve per zone type (nightlife, downtown and hotels, residential, office, campus, hospitals, Seattle Center, stadiums).
 - **Events** from the day's data file. Big crowds flood the venue curb with drivers, so nearby neighborhoods get the boost. Mid-size crowds boost the venue itself. TV games boost bar districts at the final whistle.
-- **SEA flight banks**: arrivals vs. departures by hour. Departure-heavy hours fill the waiting lot with drivers who just dropped off. With your place in line it estimates the wait.
+- **SEA flight banks**: arrivals vs. departures by hour, from the day's real schedule when the flights file exists, otherwise a typical-day profile. Departure-heavy hours fill the waiting lot with drivers who just dropped off. With your place in line it estimates the wait.
 - **Rain** from the NWS hourly forecast. The first hour of rain after a dry stretch counts most.
 - **Pay floor**: pickups inside Seattle pay $0.70/min + $1.63/mi (2026) vs. $0.40/min + $1.38/mi outside.
 - **Drive time** to each zone.
@@ -38,6 +38,10 @@ The rates are relative estimates for comparing options, not earnings predictions
 ```
 
 `crowd` is `big` (arena or stadium), `mid` (about 1,000–3,000) or `small`. `kind` is one of `concert`, `sports`, `festival`, `convention`, `comedy`, `theatre` or `watch` (a TV game; no coordinates, boosts bar districts). Times are Pacific, 24-hour; an `out` earlier than `start` means after midnight. `sea` and `pae` are optional; without them the app uses a typical-day SEA profile.
+
+- `data/flights/YYYY-MM-DD.json`: scheduled passenger flights at SEA and PAE, written each evening by the **Flight schedules** GitHub Action (`.github/workflows/flights.yml`, `scripts/flights.py`) from [AeroDataBox](https://aerodatabox.com/). It overrides `sea` and `pae` in the events file. `sea.arrivals` is a demand index for riders at the curb (flights shifted 30 minutes after landing), `sea.departures` a drop-off index (flights shifted 90 minutes before take-off), both scaled so the busiest hour is 100. `sea.scheduled` keeps the raw counts by scheduled hour. Codeshares, cargo and private flights are excluded.
+  - Setup: get a free RapidAPI key for AeroDataBox (Basic plan, 400 units a month; this uses about 6 a day) and save it as the repository secret `AERODATABOX_KEY` (Settings → Secrets and variables → Actions). Without the key the Action skips and the app uses its typical-day profile.
+  - Run it by hand from the Actions tab (Run workflow); leave the dates empty to fetch today and tomorrow.
 
 - **On the phone** (localStorage, `wn-` keys): check-in history, settings (home, maps app), SEA line position, cached weather and neighborhood names. None of it leaves the device.
 

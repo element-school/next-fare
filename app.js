@@ -23,7 +23,7 @@
   /* ---------- state ---------- */
   const S = {
     loc: null, manual: null, label: null, city: null, cityIsSeattle: null,
-    files: [], dataLoadedAt: 0, weather: null, weatherSummary: '', weatherAt: 0,
+    files: [], flights: null, dataLoadedAt: 0, weather: null, weatherSummary: '', weatherAt: 0,
     lastRun: 0, running: false, rec: null,
     settings: Object.assign({ navApp: 'google', homeLat: null, homeLng: null }, store.get('settings', {})),
     venues: [], venuesKey: null,
@@ -56,13 +56,29 @@
   }
 
   /* ---------- data ---------- */
+  // Raw GitHub copy, used if a just-committed flights file hasn't reached GitHub Pages yet.
+  const RAW = 'https://raw.githubusercontent.com/element-school/next-fare/main/';
+  const getJSON = async url => {
+    try { const r = await fetch(url, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; }
+  };
   async function loadData() {
     if (Date.now() - S.dataLoadedAt < 10 * 60000 && S.files.length) return;
     const days = [ymdOffset(0), ymdOffset(-1)];
-    const files = await Promise.all(days.map(async d => {
-      try { const r = await fetch(`data/${d}.json`, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; }
-    }));
+    const fpath = `data/flights/${days[0]}.json`;
+    const [files, flights] = await Promise.all([
+      Promise.all(days.map(d => getJSON(`data/${d}.json`))),
+      getJSON(fpath).then(f => f || getJSON(RAW + fpath))
+    ]);
     S.files = files.map((f, i) => f ? Object.assign({ date: days[i] }, f) : null).filter(Boolean);
+    // Flight schedules come from their own file (written by a GitHub Action) and
+    // override any SEA/PAE numbers in the events file.
+    S.flights = flights && flights.date === days[0] ? flights : null;
+    if (S.flights) {
+      let f = S.files.find(x => x.date === days[0]);
+      if (!f) { f = { date: days[0], events: [] }; S.files.push(f); }
+      if (S.flights.sea) f.sea = S.flights.sea;
+      if (S.flights.pae) f.pae = S.flights.pae;
+    }
     S.dataLoadedAt = Date.now();
   }
   async function loadWeather() {
@@ -293,6 +309,11 @@
     $('#dataNote').textContent = f
       ? `Event data for ${today}${f.generatedAt ? `, written ${new Date(f.generatedAt).toLocaleString('en-US', { timeZone: TZ, weekday: 'short', hour: 'numeric', minute: '2-digit' })}` : ''}. ${(f.events || []).length} events.`
       : `No event data for ${today} yet, so advice uses time-of-day patterns only.`;
+    const sch = S.flights && S.flights.sea && S.flights.sea.scheduled;
+    const sum = a => (a || []).reduce((s, x) => s + x, 0);
+    $('#dataNote').textContent += sch
+      ? ` SEA flights: today's schedule (${sum(sch.arrivals)} arrivals, ${sum(sch.departures)} departures).`
+      : ' SEA flights: typical-day estimate.';
   }
 
   /* ---------- food & chargers ---------- */

@@ -356,7 +356,12 @@
         reasons.push('Enter your place in line below for a wait estimate');
       }
       if (!stayInLine && peak != null) reasons.push(`Arrivals pick up around ${fmtMin(peak * 60)}`);
+      const sch = ctx.data && ctx.data.sea && ctx.data.sea.scheduled && ctx.data.sea.scheduled.arrivals;
       if (s.fromData === false) reasons.push('Flight banks are a typical-day estimate');
+      else if (Array.isArray(sch) && sch.length === 24) {
+        const n = Math.round(sch[ctx.h] * (60 - ctx.m) / 60 + sch[(ctx.h + 1) % 24] * ctx.m / 60);
+        reasons.push(`Today's schedule: about ${n} passenger flight${n === 1 ? '' : 's'} land in the next hour`);
+      }
       if (stayInLine) {
         return Object.assign(base, { action: 'sea-stay', verb: 'Stay in the SEA line', target: null, travel: 0, meter: meter(stay.rate), reasons, estWait, alternatives: [leaveTo, ...cands.filter(c => c !== leaveTo).slice(0, 2)] });
       }
