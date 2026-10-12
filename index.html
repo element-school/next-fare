@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0D6845">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Where Next">
+<meta name="robots" content="noindex,nofollow">
+<title>Where Next</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&family=Overpass+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one thumb-reach column. Top bar says where you are; the big card says what to do; everything else is below the fold. */
+:root{
+  --bg:#F1F4F2; --surface:#FFFFFF; --ink:#13201B; --muted:#596862; --line:#D3DCD7;
+  --sign:#0D6845; --sign-ink:#FFFFFF; --link:#1B4E9B;
+  --stay:#24323A; --stay-ink:#FFFFFF; --brk:#8A5A00; --brk-ink:#FFFFFF;
+  --hi:#0F8452; --mid:#A86F04; --lo:#7D8984; --danger:#B3261E;
+  --font:'Overpass','Helvetica Neue',Arial,sans-serif;
+  --mono:'Overpass Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0C1210; --surface:#151D1A; --ink:#E5ECE8; --muted:#9AA8A1; --line:#26322D;
+  --sign:#0F6A47; --sign-ink:#F4F8F6; --link:#8DB2EE;
+  --stay:#2A3A44; --stay-ink:#F4F8F6; --brk:#8F6206; --brk-ink:#FFF8EC;
+  --hi:#48C78E; --mid:#E4AE40; --lo:#76837D; --danger:#F2867E; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.45;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:620px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;display:grid;gap:16px}
+a{color:var(--link)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.label{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.where{min-width:0}
+.where .place{font-weight:800;font-size:19px;line-height:1.2;overflow-wrap:anywhere}
+.where .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:5px;padding:1px 6px;border:1.5px solid currentColor}
+.tag.sea{color:var(--hi)}
+.tag.wa{color:var(--muted)}
+.refresh{flex:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;min-height:48px}
+
+/* Action card */
+.card{border-radius:16px;padding:18px 18px 16px;display:grid;gap:12px;background:var(--sign);color:var(--sign-ink);box-shadow:inset 0 0 0 4px var(--sign),inset 0 0 0 6px var(--sign-ink)}
+.card[data-a="stay"],.card[data-a="sea-stay"]{background:var(--stay);color:var(--stay-ink);box-shadow:inset 0 0 0 4px var(--stay),inset 0 0 0 6px var(--stay-ink)}
+.card[data-a="break"]{background:var(--brk);color:var(--brk-ink);box-shadow:inset 0 0 0 4px var(--brk),inset 0 0 0 6px var(--brk-ink)}
+.card .verb{font-size:15px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.92}
+.card .dest{font-size:clamp(28px,8vw,40px);font-weight:900;line-height:1.05;letter-spacing:.005em;text-wrap:balance;margin:0}
+.card .sub{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-weight:700;font-size:16px}
+.dots{display:inline-flex;gap:4px;align-items:center}
+.dots i{width:10px;height:10px;border-radius:50%;border:2px solid currentColor;display:block}
+.dots i.on{background:currentColor}
+.card ul{margin:0;padding-left:20px;display:grid;gap:4px;font-size:16px}
+.navrow{display:flex;gap:10px;flex-wrap:wrap}
+.nav{flex:1 1 140px;text-align:center;text-decoration:none;font-weight:900;font-size:18px;border-radius:12px;padding:13px 14px;background:var(--sign-ink);color:var(--sign);min-height:52px;display:flex;align-items:center;justify-content:center}
+.card[data-a="stay"] .nav,.card[data-a="sea-stay"] .nav{color:var(--stay)}
+.card[data-a="break"] .nav{color:var(--brk)}
+.nav.alt{background:transparent;color:inherit;border:2px solid currentColor}
+.card .status{font-size:15px;opacity:.9}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.panel h2{margin:0;font-size:17px;font-weight:800}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding-block:8px;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .n{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.row .d{font-size:14px;color:var(--muted);grid-column:1/2}
+.row .r{grid-row:1/3;grid-column:2;text-align:right;display:grid;gap:4px;justify-items:end}
+.row a.go{font-weight:800;font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.q{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.q label{display:grid;gap:4px;font-size:14px;font-weight:700;color:var(--muted)}
+.q input{width:110px;font-size:22px;font-family:var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.btn{background:var(--sign);color:var(--sign-ink);border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;min-height:48px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat .num{font-family:var(--mono);font-size:22px;font-weight:600}
+details.panel summary{cursor:pointer;font-weight:800;list-style:none}
+details.panel summary::-webkit-details-marker{display:none}
+details.panel summary::after{content:' +';color:var(--muted)}
+details.panel[open] summary::after{content:' –'}
+.set{display:grid;gap:12px}
+.set .f{display:grid;gap:4px}
+.set .f label{font-size:14px;font-weight:700;color:var(--muted)}
+.set input,.set select{padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);min-height:44px}
+.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+.err{color:var(--danger);font-weight:700}
+@media (prefers-reduced-motion:no-preference){ .card{transition:background-color .25s} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="where">
+      <div class="place" id="place">Where Next</div>
+      <div class="meta" id="meta"><span>Finding your location…</span></div>
+    </div>
+    <button class="refresh" id="refresh" type="button" aria-label="Refresh location and advice">↻ Refresh</button>
+  </header>
+
+  <section class="card" id="card" data-a="stay" aria-live="polite">
+    <div class="verb" id="verb">Getting ready</div>
+    <p class="dest" id="dest">Checking where you are</p>
+    <div class="status" id="status">Allow location access when your phone asks. Your location stays on this phone.</div>
+  </section>
+
+  <section class="panel" id="seaPanel" hidden>
+    <h2>Your place in the SEA line</h2>
+    <form class="q" id="seaForm">
+      <label for="seaPos">Position (from the driver app)<input id="seaPos" type="number" inputmode="numeric" min="1" max="400" placeholder="#"></label>
+      <button class="btn" type="submit">Update</button>
+    </form>
+    <div class="small" id="seaNote">The estimate assumes a typical rideshare pickup rate for this hour's arrivals. It gets better as you use it.</div>
+  </section>
+
+  <section class="panel" id="altPanel" hidden>
+    <h2>Other options</h2>
+    <div id="alts"></div>
+  </section>
+
+  <section class="panel" id="upPanel" hidden>
+    <h2>Letting out soon</h2>
+    <div id="ups"></div>
+  </section>
+
+  <section class="panel" id="foodPanel">
+    <div class="inline" style="justify-content:space-between">
+      <h2>Food &amp; chargers nearby</h2>
+      <button class="btn ghost" id="foodBtn" type="button">Find</button>
+    </div>
+    <div id="food" class="small">Takeout spots within about a kilometer, plus the closest Tesla Superchargers.</div>
+  </section>
+
+  <section class="panel">
+    <h2>Today</h2>
+    <div class="stats" id="stats"></div>
+    <div class="small">Each time you open the app after a drop-off it notes where and when, on this phone only. The time between check-ins shows where pings come fast, and the advice leans on it once a spot has a few check-ins.</div>
+  </section>
+
+  <section class="panel" id="manualPanel" hidden>
+    <h2>Pick your spot</h2>
+    <div class="small" id="manualWhy">Location isn't available. Choose the closest area and I'll work from there.</div>
+    <select id="manualZone" aria-label="Closest area"></select>
+  </section>
+
+  <details class="panel">
+    <summary>Settings</summary>
+    <div class="set">
+      <div class="f">
+        <label>Home</label>
+        <div class="inline"><button class="btn ghost" id="setHome" type="button">Set home to where I am</button><button class="btn ghost" id="clearHome" type="button">Clear</button></div>
+        <div class="small" id="homeNote">Not set. Used for "head home" at the end of your shift. Stored only on this phone.</div>
+      </div>
+      <div class="f">
+        <label for="shiftEnd">End my shift at</label>
+        <input id="shiftEnd" type="time">
+      </div>
+      <div class="f">
+        <label for="navApp">Navigate with</label>
+        <select id="navApp"><option value="google">Google Maps</option><option value="waze">Waze</option><option value="apple">Apple Maps</option></select>
+      </div>
+      <div class="f">
+        <label>Check-in history</label>
+        <div class="inline"><button class="btn ghost" id="clearHist" type="button">Clear history</button><span class="small" id="histNote"></span></div>
+      </div>
+      <div class="small" id="dataNote"></div>
+      <div class="small">Advice is an estimate from time of day, the day's events, SEA flight banks, the weather, the Seattle pay floor, drive time and your own check-ins. It can't see Uber's surge pricing or how many drivers are nearby. Use it while stopped.</div>
+    </div>
+  </details>
+</div>
+<script src="zones.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

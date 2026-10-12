@@ -1,0 +1,21 @@
+{
+ "date": "2026-10-12",
+ "generatedAt": "2026-10-12T03:30:00Z",
+ "events": [
+  {
+   "name": "Indigenous Peoples' Day celebration",
+   "venue": "Daybreak Star Cultural Center",
+   "lat": 47.6574,
+   "lng": -122.4166,
+   "start": "11:00",
+   "out": "17:00",
+   "crowd": "small",
+   "kind": "festival",
+   "note": "Times unconfirmed; remote spot with few drivers",
+   "unconfirmed": true
+  }
+ ],
+ "notes": [
+  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+ ]
+}

@@ -1,0 +1,45 @@
+{
+ "date": "2026-10-18",
+ "generatedAt": "2026-10-12T03:30:00Z",
+ "events": [
+  {
+   "name": "Water Lantern Festival",
+   "venue": "West Green Lake Beach",
+   "lat": 47.6797,
+   "lng": -122.345,
+   "start": "17:00",
+   "out": "20:30",
+   "crowd": "mid",
+   "kind": "festival",
+   "note": "Hours unconfirmed",
+   "unconfirmed": true
+  },
+  {
+   "name": "Northwest Record Show",
+   "venue": "Seattle Center",
+   "lat": 47.6215,
+   "lng": -122.3509,
+   "start": "10:00",
+   "out": "16:00",
+   "crowd": "small",
+   "kind": "festival",
+   "note": "Hours unconfirmed",
+   "unconfirmed": true
+  },
+  {
+   "name": "Fauntleroy Fall Festival",
+   "venue": "California Ave SW",
+   "lat": 47.5226,
+   "lng": -122.387,
+   "start": "12:00",
+   "out": "17:00",
+   "crowd": "small",
+   "kind": "festival",
+   "note": "Hours unconfirmed",
+   "unconfirmed": true
+  }
+ ],
+ "notes": [
+  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+ ]
+}

@@ -1,0 +1,27 @@
+{
+ "date": "2026-10-15",
+ "generatedAt": "2026-10-12T03:30:00Z",
+ "events": [
+  {
+   "name": "Seahawks at Broncos (on TV)",
+   "start": "17:15",
+   "out": "20:30",
+   "crowd": "mid",
+   "kind": "watch",
+   "note": "Sports-bar crowds head home after the final whistle"
+  },
+  {
+   "name": "Doja Cat",
+   "venue": "Climate Pledge Arena",
+   "lat": 47.6221,
+   "lng": -122.354,
+   "start": "19:30",
+   "out": "22:45",
+   "crowd": "big",
+   "kind": "concert"
+  }
+ ],
+ "notes": [
+  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+ ]
+}

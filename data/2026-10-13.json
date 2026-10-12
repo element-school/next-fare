@@ -1,0 +1,21 @@
+{
+ "date": "2026-10-13",
+ "generatedAt": "2026-10-12T03:30:00Z",
+ "events": [
+  {
+   "name": "Iron & Wine",
+   "venue": "5th Avenue Theatre",
+   "lat": 47.6091,
+   "lng": -122.3343,
+   "start": "20:00",
+   "out": "22:15",
+   "crowd": "mid",
+   "kind": "concert",
+   "note": "Start time unconfirmed",
+   "unconfirmed": true
+  }
+ ],
+ "notes": [
+  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+ ]
+}

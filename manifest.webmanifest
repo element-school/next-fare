@@ -1,0 +1,15 @@
+{
+  "name": "Where Next",
+  "short_name": "Where Next",
+  "description": "After a drop-off, tells you where to go next.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0C1210",
+  "theme_color": "#0D6845",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
