@@ -45,7 +45,8 @@ The rates are relative estimates for comparing options, not earnings predictions
 
 - `plan` in the day's data file: the nightly plan's headline and time blocks (start, end, zone, strength, a short play), shown as **Today's rhythm** with the current and next block marked. The repo is public, so this copy leaves out earnings, anything from the driver's own log, and home location.
 
-- **On the phone** (localStorage, `wn-` keys): check-in history, the advice log, settings (home, maps app), SEA line position, cached weather and neighborhood names. None of it leaves the device unless exported.
+- **On the phone** (localStorage, `wn-` keys): check-in history, the advice log, settings (home, maps app), SEA line position, cached weather and neighborhood names. None of it leaves the device unless exported, or, for the advice log, cloud sync is turned on.
+- **Cloud sync** (optional, Settings → Cloud sync): with a device key pasted in, each advice-log entry is also sent to a private Supabase table (`next_fare.advice_log` in the permit-explorer project) through `public.nf_log_advice()`. The page only carries the publishable key, which can call that one function and nothing else; the function stores rows only for a registered device key, kept on the phone and stored server-side as a SHA-256 hash. Schema: `supabase/migrations/`.
 - **Advice log** (`wn-advice`): one entry per refresh with time, location (4 decimals), accuracy, zone, the action and target, expected rate, drive time, SEA wait and line position, the top two reasons and the three alternatives. A refresh that recomputes when venues or the place name arrive updates its own entry. Settings → Advice log → Export shares or downloads `where-next-log-YYYY-MM-DD.json` (advice plus check-ins) for matching against Uber trips.
 
 ## Live services (all free, no keys)

@@ -193,15 +193,18 @@
     if (mode === 'update') {
       if (!last || last.k !== S.logKey || now - last.t > 3 * 60000) return;
       S.advice[S.advice.length - 1] = Object.assign(entry, { t: last.t, k: last.k });
+    } else if (last && now - last.t < 60000 && last.a === entry.a && last.to === entry.to && E.km(last, entry) < 0.1) {
+      // A quick second refresh in the same spot with the same advice replaces the last entry (same key).
+      S.logKey = last.k; entry.k = last.k;
+      S.advice[S.advice.length - 1] = entry;
     } else {
       S.logKey = 'k' + now; entry.k = S.logKey;
-      // A quick second refresh in the same spot with the same advice replaces the last entry.
-      if (last && now - last.t < 60000 && last.a === entry.a && last.to === entry.to && E.km(last, entry) < 0.1) S.advice.pop();
       S.advice.push(entry);
       if (S.advice.length > 8000) S.advice = S.advice.slice(-8000);
     }
     store.set('advice', S.advice);
     adviceNote();
+    syncMark([entry.k]);
   }
   function adviceNote() {
     const n = S.advice.length;
@@ -219,6 +222,59 @@
     } catch (e) { if (e && e.name === 'AbortError') return; }
     const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  /* ---------- cloud sync: advice log -> private Supabase table (only with a device key) ---------- */
+  // The publishable key only lets the page call nf_log_advice(); the device key, kept on this
+  // phone, is what that function checks before it stores anything. Nothing else is readable.
+  const SB_URL = 'https://umcaijhbdvcoyefvflbf.supabase.co';
+  const SB_KEY = 'sb_publishable_pHl5cv1j8ZoXbTV2ts-M6g_kUvi0HzE';
+  const SY = { key: store.get('syncKey', null), pending: store.get('syncPending', []), last: store.get('syncLast', null), err: null, busy: false, timer: null };
+  function syncMark(keys) {
+    if (!SY.key) return;
+    const set = new Set(SY.pending); keys.forEach(k => k && set.add(k));
+    SY.pending = [...set]; store.set('syncPending', SY.pending);
+    clearTimeout(SY.timer); SY.timer = setTimeout(syncFlush, 1500);
+  }
+  async function syncFlush() {
+    if (!SY.key || SY.busy || !SY.pending.length) { syncNote(); return; }
+    if (navigator.onLine === false) { SY.err = 'offline'; syncNote(); return; }
+    SY.busy = true;
+    try {
+      while (SY.pending.length) {
+        const batch = SY.pending.slice(0, 200);
+        const byKey = new Map(S.advice.map(e => [e.k, e]));
+        const rows = batch.map(k => byKey.get(k)).filter(Boolean);
+        if (rows.length) {
+          const r = await fetch(SB_URL + '/rest/v1/rpc/nf_log_advice', {
+            method: 'POST',
+            headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_key: SY.key, p_rows: rows })
+          });
+          if (!r.ok) {
+            let msg = 'HTTP ' + r.status;
+            try { const j = await r.json(); if (j && j.message) msg = j.message; } catch {}
+            throw new Error(msg);
+          }
+        }
+        const sent = new Set(batch);
+        SY.pending = SY.pending.filter(k => !sent.has(k)); store.set('syncPending', SY.pending);
+        SY.last = { at: Date.now(), n: ((SY.last && SY.last.n) || 0) + rows.length }; store.set('syncLast', SY.last);
+      }
+      SY.err = null;
+    } catch (e) {
+      SY.err = e && e.message || 'failed';
+    } finally { SY.busy = false; syncNote(); }
+  }
+  function syncNote() {
+    const el = $('#syncNote'); if (!el) return;
+    $('#syncKey').hidden = !!SY.key; $('#syncSave').hidden = !!SY.key; $('#syncOff').hidden = !SY.key;
+    if (!SY.key) { el.textContent = 'Off. Paste the sync key from Claude to upload the advice log to your private database automatically.'; return; }
+    const when = SY.last ? new Date(SY.last.at).toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }) : null;
+    el.textContent = SY.err === 'offline' ? `On. Offline; ${SY.pending.length} waiting to upload.`
+      : SY.err ? `On, but the last upload failed (${SY.err}). ${SY.pending.length} waiting; it retries on the next refresh.`
+      : SY.pending.length ? `On. Uploading ${SY.pending.length}…`
+      : `On. Everything uploaded${when ? `, last at ${when}` : ''}.`;
   }
 
   /* ---------- today's rhythm (blocks from the nightly plan) ---------- */
@@ -467,13 +523,26 @@
 
   // Refresh whenever you switch back to the app (e.g. right after a drop-off).
   $('#exportLog').addEventListener('click', exportAdvice);
+  $('#syncSave').addEventListener('click', () => {
+    const k = ($('#syncKey').value || '').trim();
+    if (!/^wn_[A-Za-z0-9_-]{30,}$/.test(k)) { $('#syncNote').textContent = 'That doesn\u2019t look like a sync key. It starts with wn_.'; return; }
+    SY.key = k; store.set('syncKey', k); $('#syncKey').value = '';
+    SY.pending = []; syncMark(S.advice.map(e => e.k)); syncNote();
+  });
+  $('#syncOff').addEventListener('click', () => { SY.key = null; SY.pending = []; store.set('syncKey', null); store.set('syncPending', []); syncNote(); });
+  window.addEventListener('online', () => syncFlush());
+  syncNote(); if (SY.key && SY.pending.length) setTimeout(syncFlush, 3000);
   let clearLogArmed = false;
   $('#clearLog').addEventListener('click', () => {
     if (!clearLogArmed) { clearLogArmed = true; $('#clearLog').textContent = 'Tap again to clear'; setTimeout(() => { clearLogArmed = false; $('#clearLog').textContent = 'Clear'; }, 4000); return; }
     S.advice = []; store.set('advice', []); clearLogArmed = false; $('#clearLog').textContent = 'Clear'; adviceNote();
   });
   adviceNote();
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - S.lastRun > 60000) run('visible'); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (Date.now() - S.lastRun > 60000) run('visible');
+    if (SY.key && SY.pending.length) syncFlush();
+  });
   // Keep the advice current while the screen is on.
   setInterval(() => { if (document.visibilityState === 'visible' && S.loc) compute(); }, 60000);
   run('load');

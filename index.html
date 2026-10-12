@@ -200,7 +200,16 @@ details.panel[open] summary::after{content:' –'}
       <div class="f">
         <label>Advice log</label>
         <div class="inline"><button class="btn ghost" id="exportLog" type="button">Export</button><button class="btn ghost" id="clearLog" type="button">Clear</button></div>
-        <div class="small"><span id="adviceNote"></span> Every refresh saves where you were and what the app told you, on this phone only. Export the file and send it to Claude with your Uber trips to see how the advice worked out.</div>
+        <div class="small"><span id="adviceNote"></span> Every refresh saves where you were and what the app told you. Export the file and send it to Claude with your Uber trips to see how the advice worked out, or turn on cloud sync below and it uploads by itself.</div>
+      </div>
+      <div class="f">
+        <label for="syncKey">Cloud sync</label>
+        <div class="inline">
+          <input id="syncKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="wn_…" style="flex:1 1 180px;min-width:0">
+          <button class="btn ghost" id="syncSave" type="button">Save</button>
+          <button class="btn ghost" id="syncOff" type="button" hidden>Turn off</button>
+        </div>
+        <div class="small" id="syncNote"></div>
       </div>
       <div class="f">
         <label>Check-in history</label>
