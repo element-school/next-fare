@@ -1,6 +1,6 @@
 # Where Next
 
-A personal companion web app for rideshare driving in the Seattle area. Open it after a drop-off: it reads your location and tells you what to do next. The options are to stay put, head to a specific neighborhood, leave or stay in the SEA waiting line, take a break (with takeout spots and Superchargers nearby), or head home after your shift.
+A personal companion web app for rideshare driving in the Seattle area. Open it after a drop-off: it reads your location and tells you what to do next. The options are to stay put, head to a specific neighborhood, leave or stay in the SEA waiting line, take a break (with takeout spots nearby), or call it a night when nothing within reach looks worth the time.
 
 It runs entirely in the browser. There is no server, no account, and no connection to Uber.
 
@@ -14,6 +14,7 @@ It runs entirely in the browser. There is no server, no account, and no connecti
 - **Rain** from the NWS hourly forecast. The first hour of rain after a dry stretch counts most.
 - **Pay floor**: pickups inside Seattle pay $0.70/min + $1.63/mi (2026) vs. $0.40/min + $1.38/mi outside.
 - **Drive time** to each zone.
+- **Small venues nearby**: comedy clubs, theaters, music venues, nightclubs and cinemas within about 900 m (from OpenStreetMap), with the times that kind of venue usually lets out. A let-out in the next half hour raises the score for your spot.
 - **Your history**: the minutes between check-ins (≈ wait for a ping + the trip) by zone and time of day, once a spot has at least 3.
 
 The rates are relative estimates for comparing options, not earnings predictions. The app can't see Uber's surge pricing or nearby drivers.
@@ -36,16 +37,17 @@ The rates are relative estimates for comparing options, not earnings predictions
 }
 ```
 
-`crowd` is `big` (arena or stadium), `mid` (about 1,000–3,000) or `small`. `kind` is one of `concert`, `sports`, `festival`, `convention` or `watch` (a TV game; no coordinates, boosts bar districts). Times are Pacific, 24-hour; an `out` earlier than `start` means after midnight. `sea` and `pae` are optional; without them the app uses a typical-day SEA profile.
+`crowd` is `big` (arena or stadium), `mid` (about 1,000–3,000) or `small`. `kind` is one of `concert`, `sports`, `festival`, `convention`, `comedy`, `theatre` or `watch` (a TV game; no coordinates, boosts bar districts). Times are Pacific, 24-hour; an `out` earlier than `start` means after midnight. `sea` and `pae` are optional; without them the app uses a typical-day SEA profile.
 
-- **On the phone** (localStorage, `wn-` keys): check-in history, settings (home, shift end, maps app), SEA line position, cached weather and neighborhood names. None of it leaves the device.
+- **On the phone** (localStorage, `wn-` keys): check-in history, settings (home, maps app), SEA line position, cached weather and neighborhood names. None of it leaves the device.
 
 ## Live services (all free, no keys)
 
 - Location: the browser's Geolocation API.
 - Neighborhood names: OpenStreetMap Nominatim, cached per ~100 m.
 - Weather: api.weather.gov hourly forecast, cached 45 min.
-- Takeout and Superchargers: OpenStreetMap Overpass, only on request.
+- Venues nearby: OpenStreetMap Overpass, cached per ~1 km for 12 hours.
+- Takeout: OpenStreetMap Overpass, only on request.
 
 ## Develop
 

@@ -1,7 +1,61 @@
 {
  "date": "2026-10-12",
- "generatedAt": "2026-10-12T03:30:00Z",
+ "generatedAt": "2026-10-12T05:00:00Z",
  "events": [
+  {
+   "name": "Rush (closing night)",
+   "venue": "Climate Pledge Arena",
+   "lat": 47.6221,
+   "lng": -122.354,
+   "start": "19:30",
+   "out": "22:50",
+   "crowd": "big",
+   "kind": "concert",
+   "note": "Let-out estimated from a three-hour show; work Belltown, SLU or Capitol Hill, not the curb"
+  },
+  {
+   "name": "Sex Pistols featuring Frank Carter",
+   "venue": "Showbox SoDo",
+   "lat": 47.5883,
+   "lng": -122.3344,
+   "start": "20:30",
+   "out": "22:45",
+   "crowd": "mid",
+   "kind": "concert",
+   "note": "About 1,800 people, away from the arena crush"
+  },
+  {
+   "name": "Boy Harsher",
+   "venue": "The Showbox",
+   "lat": 47.6085,
+   "lng": -122.3399,
+   "start": "20:00",
+   "out": "22:30",
+   "crowd": "mid",
+   "kind": "concert"
+  },
+  {
+   "name": "Monday comedy show",
+   "venue": "Comedy Underground",
+   "lat": 47.6006,
+   "lng": -122.334,
+   "start": "20:30",
+   "out": "22:00",
+   "crowd": "small",
+   "kind": "comedy",
+   "note": "Regular Monday slot; lineup and time unconfirmed",
+   "unconfirmed": true
+  },
+  {
+   "name": "Lou Hazel with Ray Wolff",
+   "venue": "Tractor Tavern",
+   "lat": 47.6662,
+   "lng": -122.3829,
+   "start": "20:00",
+   "out": "22:30",
+   "crowd": "small",
+   "kind": "concert"
+  },
   {
    "name": "Indigenous Peoples' Day celebration",
    "venue": "Daybreak Star Cultural Center",
@@ -15,7 +69,12 @@
    "unconfirmed": true
   }
  ],
+ "pae": {
+  "arrivals": ["09:46", "11:48", "12:02", "18:46", "18:53", "20:10", "20:56"]
+ },
  "notes": [
-  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+  "Federal holiday: three-day-weekend travelers fly home this afternoon.",
+  "Kelsey Lu at Neumos is cancelled.",
+  "SEA flight banks use the typical-day profile."
  ]
 }
