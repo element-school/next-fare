@@ -43,7 +43,10 @@ The rates are relative estimates for comparing options, not earnings predictions
   - Setup: get a free RapidAPI key for AeroDataBox (Basic plan, 400 units a month; this uses about 6 a day) and save it as the repository secret `AERODATABOX_KEY` (Settings → Secrets and variables → Actions). Without the key the Action skips and the app uses its typical-day profile.
   - Run it by hand from the Actions tab (Run workflow); leave the dates empty to fetch today and tomorrow.
 
-- **On the phone** (localStorage, `wn-` keys): check-in history, settings (home, maps app), SEA line position, cached weather and neighborhood names. None of it leaves the device.
+- `plan` in the day's data file: the nightly plan's headline and time blocks (start, end, zone, strength, a short play), shown as **Today's rhythm** with the current and next block marked. The repo is public, so this copy leaves out earnings, anything from the driver's own log, and home location.
+
+- **On the phone** (localStorage, `wn-` keys): check-in history, the advice log, settings (home, maps app), SEA line position, cached weather and neighborhood names. None of it leaves the device unless exported.
+- **Advice log** (`wn-advice`): one entry per refresh with time, location (4 decimals), accuracy, zone, the action and target, expected rate, drive time, SEA wait and line position, the top two reasons and the three alternatives. A refresh that recomputes when venues or the place name arrive updates its own entry. Settings → Advice log → Export shares or downloads `where-next-log-YYYY-MM-DD.json` (advice plus check-ins) for matching against Uber trips.
 
 ## Live services (all free, no keys)
 

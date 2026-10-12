@@ -28,6 +28,7 @@
     settings: Object.assign({ navApp: 'google', homeLat: null, homeLng: null }, store.get('settings', {})),
     venues: [], venuesKey: null,
     checkins: store.get('checkins', []),
+    advice: store.get('advice', []), logKey: null,
     queue: store.get('queue', null)
   };
 
@@ -173,6 +174,90 @@
     store.set('checkins', S.checkins);
   }
 
+  /* ---------- advice log (on this phone; exported from Settings) ---------- */
+  const APP_VERSION = '2026-10-12';
+  function logAdvice(rec, mode) {
+    const now = Date.now(), loc = S.loc;
+    const entry = {
+      t: now, v: APP_VERSION,
+      lat: +loc.lat.toFixed(4), lng: +loc.lng.toFixed(4), acc: loc.acc != null ? Math.round(loc.acc) : null, manual: !!loc.manual,
+      zone: rec.here.id, inside: rec.hereInside, seattle: rec.seattle,
+      a: rec.action, to: rec.target ? (rec.target.id || 'home') : null, travel: rec.travel || 0,
+      rate: rec.rate != null ? Math.round(rec.rate) : null, later: rec.laterRate != null ? Math.round(rec.laterRate) : null,
+      resume: rec.resumeAt != null ? E.fmtMin(rec.resumeAt) : null,
+      wait: rec.estWait ?? null, q: S.queue && now - S.queue.at < 25 * 60000 ? S.queue.pos : null,
+      why: (rec.reasons || []).slice(0, 2).map(x => String(x).slice(0, 120)),
+      alts: (rec.alternatives || []).filter(Boolean).slice(0, 3).map(x => [x.zone.id, x.travel, Math.round(x.rate)])
+    };
+    const last = S.advice[S.advice.length - 1];
+    if (mode === 'update') {
+      if (!last || last.k !== S.logKey || now - last.t > 3 * 60000) return;
+      S.advice[S.advice.length - 1] = Object.assign(entry, { t: last.t, k: last.k });
+    } else {
+      S.logKey = 'k' + now; entry.k = S.logKey;
+      // A quick second refresh in the same spot with the same advice replaces the last entry.
+      if (last && now - last.t < 60000 && last.a === entry.a && last.to === entry.to && E.km(last, entry) < 0.1) S.advice.pop();
+      S.advice.push(entry);
+      if (S.advice.length > 8000) S.advice = S.advice.slice(-8000);
+    }
+    store.set('advice', S.advice);
+    adviceNote();
+  }
+  function adviceNote() {
+    const n = S.advice.length;
+    $('#adviceNote').textContent = n
+      ? `${n} saved since ${new Date(S.advice[0].t).toLocaleDateString('en-US', { timeZone: TZ, month: 'short', day: 'numeric' })}.`
+      : 'Nothing saved yet.';
+  }
+  async function exportAdvice() {
+    const p = pt();
+    const body = JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Where Next', version: APP_VERSION, advice: S.advice, checkins: S.checkins });
+    const name = `where-next-log-${p.ymd}.json`;
+    const file = new File([body], name, { type: 'application/json' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  /* ---------- today's rhythm (blocks from the nightly plan) ---------- */
+  function fmtShort(m) { return E.fmtMin(m).replace(':00', ''); }
+  function renderRhythm() {
+    const p = pt(), now = p.h * 60 + p.m;
+    const blocks = [];
+    let head = '';
+    for (const f of S.files) {
+      const plan = f.plan; if (!plan || !Array.isArray(plan.blocks)) continue;
+      const off = f.date === p.ymd ? 0 : f.date === ymdOffset(-1) ? -1440 : null;
+      if (off == null) continue;
+      if (off === 0) head = plan.headline || '';
+      for (const b of plan.blocks) {
+        const s0 = E.toMin(b.start), e0 = E.toMin(b.end); if (s0 == null || e0 == null) continue;
+        const sm = s0 + off; let em = e0 + off; if (em <= sm) em += 1440;
+        if (off < 0 && em <= now) continue; // yesterday's block already over
+        blocks.push(Object.assign({}, b, { sm, em }));
+      }
+    }
+    blocks.sort((a, b) => a.sm - b.sm);
+    $('#planPanel').hidden = !blocks.length;
+    if (!blocks.length) return;
+    const next = blocks.find(b => b.sm > now && !b.isBreak);
+    $('#planHead').textContent = head;
+    $('#planNext').textContent = next ? `Next: ${fmtShort(next.sm)}` : '';
+    $('#plan').innerHTML = blocks.map(b => {
+      const st = b.em <= now ? 'past' : b.sm <= now ? 'now' : b === next ? 'next' : 'later';
+      const s = ['high', 'medium', 'low'].includes(b.strength) ? b.strength : 'low';
+      const showPlay = b.play && (st === 'now' || st === 'next');
+      const tag = st === 'now' ? '<span class="pill">Now</span>' : st === 'next' ? '<span class="pill soft">Next</span>' : '';
+      return `<div class="blk${b.isBreak ? ' brk' : ''}" data-st="${st}" data-s="${b.isBreak ? '' : s}">
+        <span class="t">${esc(fmtShort(b.sm))}–${esc(fmtShort(b.em))}</span>
+        <span class="z">${esc(b.isBreak ? (b.zone || 'Break') : b.zone)}${tag}</span>
+        ${showPlay ? `<span class="p">${esc(b.play)}</span>` : ''}
+      </div>`;
+    }).join('');
+  }
+
   /* ---------- navigation links ---------- */
   function navUrl(t, app) {
     const ll = `${t.lat},${t.lng}`;
@@ -203,15 +288,17 @@
       await Promise.all([dataP, wxP]);
       const nz = E.nearestZone(loc);
       recordCheckin(loc, nz.zone.id, loc.manual);
-      compute();
+      compute('new');
       S.lastRun = Date.now();
-      loadVenues(loc).then(() => compute()).catch(() => { $('#venues').className = 'small'; $('#venues').textContent = 'Couldn\u2019t reach the map service for venues. It will try again on the next refresh.'; });
-      if (!loc.manual) reverseGeocode(loc).then(g => { if (g) { S.label = g.label; S.city = g.city; S.cityIsSeattle = g.city ? g.city === 'Seattle' : null; compute(); } });
+      loadVenues(loc).then(() => compute('update')).catch(() => { $('#venues').className = 'small'; $('#venues').textContent = 'Couldn\u2019t reach the map service for venues. It will try again on the next refresh.'; });
+      if (!loc.manual) reverseGeocode(loc).then(g => { if (g) { S.label = g.label; S.city = g.city; S.cityIsSeattle = g.city ? g.city === 'Seattle' : null; compute('update'); } });
       else { S.label = null; S.city = null; S.cityIsSeattle = null; }
     } finally { S.running = false; $('#refresh').disabled = false; }
   }
 
-  function compute() {
+  // log: 'new' = a refresh or new SEA line position (adds an entry); 'update' = the same
+  // refresh recomputed once venues or the place name arrived (replaces that entry).
+  function compute(log) {
     if (!S.loc) return;
     const p = pt();
     const ctx = {
@@ -223,7 +310,9 @@
       venues: S.venues
     };
     const rec = E.recommend(ctx); S.rec = rec;
+    if (log) logAdvice(rec, log);
     render(rec, ctx);
+    renderRhythm();
     renderVenues(rec);
   }
 
@@ -350,7 +439,7 @@
   $('#seaForm').addEventListener('submit', e => {
     e.preventDefault();
     const v = parseInt($('#seaPos').value, 10);
-    S.queue = v > 0 ? { pos: v, at: Date.now() } : null; store.set('queue', S.queue); compute();
+    S.queue = v > 0 ? { pos: v, at: Date.now() } : null; store.set('queue', S.queue); compute('new');
   });
   const sel = $('#manualZone');
   sel.innerHTML = '<option value="">Choose the closest area…</option>' + ZONES.map(z => `<option value="${z.id}">${esc(z.name)}</option>`).join('');
@@ -377,6 +466,13 @@
   homeNote();
 
   // Refresh whenever you switch back to the app (e.g. right after a drop-off).
+  $('#exportLog').addEventListener('click', exportAdvice);
+  let clearLogArmed = false;
+  $('#clearLog').addEventListener('click', () => {
+    if (!clearLogArmed) { clearLogArmed = true; $('#clearLog').textContent = 'Tap again to clear'; setTimeout(() => { clearLogArmed = false; $('#clearLog').textContent = 'Clear'; }, 4000); return; }
+    S.advice = []; store.set('advice', []); clearLogArmed = false; $('#clearLog').textContent = 'Clear'; adviceNote();
+  });
+  adviceNote();
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - S.lastRun > 60000) run('visible'); });
   // Keep the advice current while the screen is on.
   setInterval(() => { if (document.visibilityState === 'visible' && S.loc) compute(); }, 60000);

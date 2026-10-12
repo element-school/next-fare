@@ -331,7 +331,7 @@
     const base = { here, hereInside: nz.inside, seattle: seattleHere, upcoming, venueHits: ven.hits, alternatives: [] };
     const home = ctx.settings && ctx.settings.homeLat != null ? { lat: ctx.settings.homeLat, lng: ctx.settings.homeLng, name: 'Home' } : null;
     const endShift = (reasons) => Object.assign(base, {
-      action: 'end', verb: 'Consider calling it', target: home, travel: home ? driveMinutes(loc, home, ctx) : 0, meter: meter(Math.max(stay.rate, best ? best.rate : 0)),
+      action: 'end', verb: 'Consider calling it', target: home, rate: Math.max(stay.rate, best ? best.rate : 0), travel: home ? driveMinutes(loc, home, ctx) : 0, meter: meter(Math.max(stay.rate, best ? best.rate : 0)),
       reasons, alternatives: [stay, ...cands.slice(0, 2)]
     });
 
@@ -363,9 +363,9 @@
         reasons.push(`Today's schedule: about ${n} passenger flight${n === 1 ? '' : 's'} land in the next hour`);
       }
       if (stayInLine) {
-        return Object.assign(base, { action: 'sea-stay', verb: 'Stay in the SEA line', target: null, travel: 0, meter: meter(stay.rate), reasons, estWait, alternatives: [leaveTo, ...cands.filter(c => c !== leaveTo).slice(0, 2)] });
+        return Object.assign(base, { action: 'sea-stay', verb: 'Stay in the SEA line', target: null, rate: stay.rate, travel: 0, meter: meter(stay.rate), reasons, estWait, alternatives: [leaveTo, ...cands.filter(c => c !== leaveTo).slice(0, 2)] });
       }
-      return Object.assign(base, { action: 'sea-leave', verb: 'Leave SEA', target: leaveTo.zone, travel: leaveTo.travel, meter: meter(leaveTo.rate),
+      return Object.assign(base, { action: 'sea-leave', verb: 'Leave SEA', target: leaveTo.zone, rate: leaveTo.rate, travel: leaveTo.travel, meter: meter(leaveTo.rate),
         reasons: [...reasons, `${leaveTo.zone.name} is ${leaveTo.travel} min north${leaveTo.zone.seattle ? ' and pays the Seattle rate' : ''}`, ...leaveTo.why.slice(0, 1)], estWait,
         alternatives: cands.filter(c => c !== leaveTo).slice(0, 3) });
     }
@@ -394,13 +394,13 @@
         const resumeAt = now + Math.max(0, future.ahead - future.travel);
         if (future.zone.id === here.id) {
           return Object.assign(base, {
-            action: 'break', verb: 'Take a break here', target: null, travel: 0, meter: meter(pick.rate), resumeAt,
+            action: 'break', verb: 'Take a break here', target: null, rate: pick.rate, laterRate: future.rate, travel: 0, meter: meter(pick.rate), resumeAt,
             reasons: ['Slow right now', `Requests here should pick up around ${fmtMin(now + future.ahead)}`, ...future.why.slice(0, 1)],
             alternatives: cands.slice(0, 3)
           });
         }
         return Object.assign(base, {
-          action: 'break', verb: 'Take a break', target: future.zone, travel: future.travel, meter: meter(pick.rate), resumeAt,
+          action: 'break', verb: 'Take a break', target: future.zone, rate: pick.rate, laterRate: future.rate, travel: future.travel, meter: meter(pick.rate), resumeAt,
           reasons: [`Slow stretch here right now`, `Leave by ${fmtMin(resumeAt)} for ${future.zone.name} (${future.travel} min)`, ...future.why.slice(0, 2)],
           alternatives: cands.slice(0, 3)
         });
@@ -416,13 +416,13 @@
       const reasons = stay.why.slice(0, 3);
       if (!reasons.length) reasons.push(here.seattle ? 'Nothing nearby beats waiting here, and Seattle pickups pay the higher floor' : 'Nothing within reach beats waiting here right now');
       if (here.tip) reasons.push(here.tip);
-      return Object.assign(base, { action: 'stay', verb: 'Stay here', target: null, travel: 0, meter: meter(stay.rate), reasons, alternatives: cands.slice(0, 3) });
+      return Object.assign(base, { action: 'stay', verb: 'Stay here', target: null, rate: stay.rate, travel: 0, meter: meter(stay.rate), reasons, alternatives: cands.slice(0, 3) });
     }
     const reasons = best.why.slice(0, 3);
     if (best.zone.seattle && !seattleHere) reasons.push('Pickups there pay the Seattle rate');
     if (!reasons.length) reasons.push(`Better odds than waiting here (${TYPE_LABEL[best.zone.type] || best.zone.type})`);
     if (best.zone.tip) reasons.push(best.zone.tip);
-    return Object.assign(base, { action: 'move', verb: 'Head to', target: best.zone, travel: best.travel, meter: meter(best.rate), reasons, alternatives: [stay, ...cands.slice(1, 3)] });
+    return Object.assign(base, { action: 'move', verb: 'Head to', target: best.zone, rate: best.rate, travel: best.travel, meter: meter(best.rate), reasons, alternatives: [stay, ...cands.slice(1, 3)] });
   }
 
   const api = { recommend, venueLetouts, nearestZone, driveMinutes, valueAt, seaIndex, prepareEvents, historyStats, daypart, km, fmtMin, toMin, meter, ZONE_BY_ID };

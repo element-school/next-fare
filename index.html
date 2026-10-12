@@ -97,6 +97,22 @@ details.panel[open] summary::after{content:' –'}
 .inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .small{font-size:13px;color:var(--muted)}
 .err{color:var(--danger);font-weight:700}
+
+/* Today's rhythm: the nightly plan's blocks, with the current one marked */
+.rhythm{display:grid;gap:6px}
+.blk{display:grid;grid-template-columns:118px 1fr;gap:2px 12px;padding:8px 10px;border-left:4px solid var(--lo);border-radius:4px 8px 8px 4px;background:var(--bg)}
+.blk[data-s="high"]{border-left-color:var(--hi)}
+.blk[data-s="medium"]{border-left-color:var(--mid)}
+.blk.brk{background:transparent;border:1px dashed var(--line);border-left-width:4px;border-left-color:var(--line)}
+.blk .t{font-family:var(--mono);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.blk .z{font-weight:800;min-width:0;overflow-wrap:anywhere;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.blk.brk .z{font-weight:700;color:var(--muted)}
+.blk .p{grid-column:2;font-size:14px;color:var(--muted)}
+.blk[data-st="past"]{opacity:.5}
+.blk[data-st="now"]{box-shadow:0 0 0 2px var(--ink)}
+.pill{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:5px;padding:1px 6px;background:var(--ink);color:var(--surface)}
+.pill.soft{background:transparent;color:var(--muted);border:1px solid var(--line)}
+@media (max-width:400px){.blk{grid-template-columns:1fr}.blk .p{grid-column:1}}
 @media (prefers-reduced-motion:no-preference){ .card{transition:background-color .25s} }
 </style>
 </head>
@@ -123,6 +139,15 @@ details.panel[open] summary::after{content:' –'}
       <button class="btn" type="submit">Update</button>
     </form>
     <div class="small" id="seaNote">The estimate assumes a typical rideshare pickup rate for this hour's arrivals. It gets better as you use it.</div>
+  </section>
+
+  <section class="panel" id="planPanel" hidden>
+    <div class="inline" style="justify-content:space-between;align-items:baseline">
+      <h2>Today's rhythm</h2>
+      <span class="small" id="planNext"></span>
+    </div>
+    <p class="small" id="planHead" style="margin:0"></p>
+    <div class="rhythm" id="plan"></div>
   </section>
 
   <section class="panel" id="altPanel" hidden>
@@ -171,6 +196,11 @@ details.panel[open] summary::after{content:' –'}
       <div class="f">
         <label for="navApp">Navigate with</label>
         <select id="navApp"><option value="google">Google Maps</option><option value="waze">Waze</option><option value="apple">Apple Maps</option></select>
+      </div>
+      <div class="f">
+        <label>Advice log</label>
+        <div class="inline"><button class="btn ghost" id="exportLog" type="button">Export</button><button class="btn ghost" id="clearLog" type="button">Clear</button></div>
+        <div class="small"><span id="adviceNote"></span> Every refresh saves where you were and what the app told you, on this phone only. Export the file and send it to Claude with your Uber trips to see how the advice worked out.</div>
       </div>
       <div class="f">
         <label>Check-in history</label>

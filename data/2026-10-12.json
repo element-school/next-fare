@@ -1,6 +1,6 @@
 {
  "date": "2026-10-12",
- "generatedAt": "2026-10-12T05:00:00Z",
+ "generatedAt": "2026-10-12T10:55:00Z",
  "events": [
   {
    "name": "Rush (closing night)",
@@ -70,11 +70,59 @@
   }
  ],
  "pae": {
-  "arrivals": ["09:46", "11:48", "12:02", "18:46", "18:53", "20:10", "20:56"]
+  "arrivals": [
+   "09:46",
+   "11:48",
+   "12:02",
+   "18:46",
+   "18:53",
+   "20:10",
+   "20:56"
+  ]
  },
  "notes": [
   "Federal holiday: three-day-weekend travelers fly home this afternoon.",
   "Kelsey Lu at Neumos is cancelled.",
   "SEA flight banks use the typical-day profile."
- ]
+ ],
+ "plan": {
+  "headline": "Holiday Monday with a late kicker: Rush at Climate Pledge and the Sex Pistols at Showbox SoDo both let out around 10:45 PM. Work the airport morning and afternoon, then the let-outs at the edges, not the arena curb.",
+  "blocks": [
+   {
+    "start": "06:00",
+    "end": "09:00",
+    "zone": "Eastside → SEA, then Seattle",
+    "strength": "medium",
+    "play": "Take Eastside airport requests. After each SEA drop-off, check the line; if it's long, head north to Georgetown or SoDo for Seattle-rate pickups."
+   },
+   {
+    "start": "09:00",
+    "end": "15:00",
+    "zone": "Break",
+    "isBreak": true,
+    "play": "Midday on a dry holiday is the weakest window. Rest and eat; tonight runs past midnight."
+   },
+   {
+    "start": "15:00",
+    "end": "18:00",
+    "zone": "SEA arrivals + Seattle",
+    "strength": "high",
+    "play": "Take a downtown → SEA trip at the Seattle rate, then a holiday-weekend return pickup at SEA if the line is short. When a trip ends in Seattle, stay there."
+   },
+   {
+    "start": "18:00",
+    "end": "22:00",
+    "zone": "Break",
+    "isBreak": true,
+    "play": "Eat and rest in Seattle. Be in position by 10 PM."
+   },
+   {
+    "start": "22:00",
+    "end": "00:30",
+    "zone": "SoDo · Belltown · Capitol Hill let-outs",
+    "strength": "high",
+    "play": "Pioneer Square by 10 PM for the Comedy Underground let-out, then a few blocks north of Showbox SoDo for the Sex Pistols crowd around 10:45. Then Belltown, lower Queen Anne and Capitol Hill for Rush fans and late bar trips."
+   }
+  ]
+ }
 }
