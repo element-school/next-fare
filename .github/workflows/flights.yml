@@ -35,9 +35,11 @@ jobs:
         run: python3 scripts/flights.py
       - name: Commit and push
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data/flights 2>/dev/null || true
           if git diff --cached --quiet; then echo "No changes"; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Flight schedules"
+          git commit -m "Flight schedules"
           for i in 1 2 3; do
             git pull --rebase origin main && git push origin HEAD:main && exit 0
             sleep 10

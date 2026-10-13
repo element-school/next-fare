@@ -341,10 +341,13 @@ def main():
         t0 = time.time()
         try:
             STEPS[step](job)
+            print(f"::notice::{step} ok in {time.time() - t0:.0f}s", flush=True)
         except Exception as e:  # noqa: BLE001
             ok = False
             log(f"!! {step} failed: {e!r}")
+            print(f"::error::{step} failed after {time.time() - t0:.0f}s: {str(e)[:400]}", flush=True)
         log(f"   {step} took {time.time() - t0:.0f}s")
+        (DATA / "last_run.log").write_text("\n".join(LOG) + "\n")
     (DATA / "last_run.log").write_text("\n".join(LOG) + "\n")
     return 0 if ok else 1
 
