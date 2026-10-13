@@ -21,6 +21,8 @@ jobs:
     timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # latest main, so a queued run sees data an earlier run committed
       - name: Install
         run: python3 -m pip install --quiet shapely pyshp
       - name: Pull data

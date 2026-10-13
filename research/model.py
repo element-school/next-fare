@@ -141,7 +141,10 @@ def main():
     D = pd.concat(data, ignore_index=True)
     feat_cols = [c for c in D.columns if c not in ("geoid", "per_hour", "airport_share", "avg_min", "avg_mi")]
     target = np.log1p(D["per_hour"].values)
-    groups = (D["geoid"].str[:9] + D["geoid"].str[9:10]).values  # contiguous blocks of tracts
+    # spatial blocks about 3 km square, so a held-out tract's neighbours are held out with it
+    cell = fc.set_index("geoid").apply(lambda r: f"{math.floor(r['lat'] / 0.027)}_{math.floor(r['lng'] / 0.036)}", axis=1)
+    groups = D["geoid"].map(cell).values
+    print("spatial CV blocks:", len(set(groups)))
     cv = []
     for tr, te in GroupKFold(n_splits=5).split(D, target, groups):
         m = HistGradientBoostingRegressor(max_iter=400, learning_rate=0.06, max_leaf_nodes=31, l2_regularization=1.0)

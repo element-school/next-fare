@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
@@ -185,34 +186,76 @@ ACS_VARS = {
 }
 
 
+def _acs_table(year, table, prefixes):
+    """Stream one ACS 5-year table-based summary file (all US geographies, pipe-delimited,
+    no API key needed) and keep the tract rows whose GEO_ID starts with one of the prefixes.
+    Returns {geoid: {column: value}} with columns named like B01003_001E."""
+    url = (f"https://www2.census.gov/programs-surveys/acs/summary_file/{year}/table-based-SF/data/"
+           f"5YRData/acsdt5y{year}-{table.lower()}.dat")
+    out = {}
+    for i in range(3):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=600) as r:
+                lines = io.TextIOWrapper(r, encoding="utf-8", errors="replace")
+                head = None
+                for line in lines:
+                    parts = line.rstrip("\n").split("|")
+                    if head is None:
+                        # columns look like B01003_E001; rename to the API style B01003_001E
+                        head = []
+                        for c in parts:
+                            t, _, rest = c.partition("_")
+                            head.append(f"{t}_{rest[1:]}{rest[0]}" if rest[:1] in ("E", "M") and rest[1:].isdigit() else c)
+                        continue
+                    if parts[0].startswith(prefixes):
+                        out[parts[0][9:]] = dict(zip(head, parts))
+            log(f"  acs {year} {table}: {len(out)} tracts")
+            return out
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise RuntimeError(f"{url} not found")
+            log(f"  retry {i + 1}/3 {url}: {e}")
+        except Exception as e:  # noqa: BLE001
+            log(f"  retry {i + 1}/3 {url}: {e}")
+        time.sleep(15 * (i + 1))
+    raise RuntimeError(f"failed: {url}")
+
+
 def acs(job):
+    """The Census API now answers 'Missing Key' to keyless requests, so this reads the bulk
+    table-based summary files instead (one file per table, every geography in the country)."""
+    prefixes = tuple(f"1400000US{reg['state']}{c}" for reg in REGIONS.values() for c in reg["counties"])
+    tables = sorted({k.split("_")[0] for k in ACS_VARS})
+    for year in (2024, 2023):
+        try:
+            merged = {}
+            for t in tables:
+                for geoid, d in _acs_table(year, t, prefixes).items():
+                    merged.setdefault(geoid, {}).update(d)
+            break
+        except RuntimeError as e:
+            log(f"  acs {year}: {e}")
+    else:
+        raise RuntimeError("ACS summary files unavailable for 2024 and 2023")
+    missing = [k for k in ACS_VARS if not any(k in d for d in merged.values())]
+    if missing:
+        sample = next(iter(merged.values()), {})
+        raise RuntimeError(f"ACS columns missing {missing}; file has {list(sample)[:12]}")
     for name, reg in REGIONS.items():
-        for year in (2024, 2023):
-            try:
-                rows = []
-                for county in reg["counties"]:
-                    txt = get(f"https://api.census.gov/data/{year}/acs/acs5",
-                              {"get": ",".join(ACS_VARS), "for": "tract:*", "in": f"state:{reg['state']} county:{county}"}, tries=2)
-                    try:
-                        data = json.loads(txt)
-                    except ValueError:
-                        raise RuntimeError(f"ACS {year} not JSON: {txt[:300]!r}")
-                    head = data[0]
-                    for row in data[1:]:
-                        d = dict(zip(head, row))
-                        out = {"geoid": d["state"] + d["county"] + d["tract"]}
-                        for k, v in ACS_VARS.items():
-                            x = float(d[k]) if d[k] not in (None, "") else None
-                            out[v] = None if x is None or x < 0 else x  # negative = suppressed
-                        rows.append(out)
-                log(f"  acs {name}: {year} acs5, {len(rows)} tracts")
-                write_csv(DATA / f"acs_{name}.csv", rows, ["geoid"] + list(ACS_VARS.values()))
-                break
-            except RuntimeError as e:
-                log(f"  acs {name} {year}: {e}")
+        rows = []
+        for geoid, d in sorted(merged.items()):
+            if not geoid.startswith(tuple(reg["state"] + c for c in reg["counties"])):
                 continue
-        else:
-            raise RuntimeError(f"ACS failed for {name}")
+            out = {"geoid": geoid}
+            for k, v in ACS_VARS.items():
+                try:
+                    x = float(d.get(k))
+                except (TypeError, ValueError):
+                    x = None
+                out[v] = None if x is None or x < 0 else x  # negative = suppressed
+            rows.append(out)
+        log(f"  acs {name}: {year} acs5, {len(rows)} tracts")
+        write_csv(DATA / f"acs_{name}.csv", rows, ["geoid"] + list(ACS_VARS.values()))
 
 
 # ---------------------------------------------------------------------------- lodes
