@@ -90,7 +90,7 @@ def _chicago_query(side, d, hdr):
     q = {"$select": ", ".join(sel), "$group": "tract, ca, hh", "$limit": 50000,
          "$where": f"trip_start_timestamp >= '{d.isoformat()}T00:00:00' AND trip_start_timestamp < '{nxt.isoformat()}T00:00:00'"}
     t0 = time.time()
-    page = json.loads(get(SOCRATA, q, timeout=180, tries=3, headers=hdr))
+    page = json.loads(get(SOCRATA, q, timeout=150, tries=3, headers=hdr))
     if len(page) >= 50000:
         raise RuntimeError(f"{side} {d}: hit the 50,000-row limit")
     path = CACHE / f"{side}_{d.isoformat()}.json.gz"
@@ -129,7 +129,8 @@ def chicago(job):
     log(f"  {total - len(todo)}/{total} days already cached; fetching {len(todo)} "
         f"({'with' if token else 'without'} an app token)")
     deadline = time.time() + float(os.environ.get("CHICAGO_BUDGET_MIN", "170")) * 60
-    workers = int(os.environ.get("CHICAGO_WORKERS", "4"))
+    # without an app token Socrata throttles by IP (GitHub runners share IPs), so go gently
+    workers = int(os.environ.get("CHICAGO_WORKERS", "4" if token else "2"))
     failed, done, times, last_save = [], 0, [], time.time()
 
     def progress(final=False):
