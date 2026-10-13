@@ -175,7 +175,7 @@
   }
 
   /* ---------- advice log (on this phone; exported from Settings) ---------- */
-  const APP_VERSION = '2026-10-12';
+  const APP_VERSION = '20261013-0026';
   function logAdvice(rec, mode) {
     const now = Date.now(), loc = S.loc;
     const entry = {
@@ -545,5 +545,30 @@
   });
   // Keep the advice current while the screen is on.
   setInterval(() => { if (document.visibilityState === 'visible' && S.loc) compute(); }, 60000);
+
+  /* ---------- auto-update: reload when a newer version is deployed ---------- */
+  // A home-screen app keeps running the code it was opened with, so the refresh button alone
+  // never picks up a fix. version.json is fetched fresh; when it differs from the running
+  // version the page reloads under a new URL so the HTML and scripts are fetched fresh too.
+  let lastVersionCheck = 0;
+  async function checkVersion() {
+    if (Date.now() - lastVersionCheck < 60000) return;
+    lastVersionCheck = Date.now();
+    try {
+      const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const v = (await r.json()).v;
+      if (!v || v === APP_VERSION) return;
+      const tried = store.get('reloadedFor', null);
+      if (tried && tried.v === v && Date.now() - tried.at < 10 * 60000) return; // don't loop if a cache still serves old code
+      const el = document.activeElement;
+      if (el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) return; // not while typing
+      store.set('reloadedFor', { v, at: Date.now() });
+      location.replace(location.pathname + '?v=' + encodeURIComponent(v) + location.hash);
+    } catch { /* offline: try again later */ }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
+  setInterval(() => { if (document.visibilityState === 'visible') checkVersion(); }, 10 * 60000);
   run('load');
+  setTimeout(checkVersion, 4000);
 })();

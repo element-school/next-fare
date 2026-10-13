@@ -59,4 +59,4 @@ The rates are relative estimates for comparing options, not earnings predictions
 
 ## Develop
 
-Static files, no build step. Serve the folder locally (`python3 -m http.server`) and open http://localhost:8000. Geolocation works on localhost and on HTTPS (GitHub Pages).
+Static files, no build step. After changing `index.html`, `app.js`, `engine.js` or `zones.js`, run `python3 scripts/bump_version.py` before committing: it stamps `version.json`, `APP_VERSION` and the script URLs, and phones running an older version reload themselves the next time the app is opened or checks (every 10 minutes while open). Serve the folder locally (`python3 -m http.server`) and open http://localhost:8000. Geolocation works on localhost and on HTTPS (GitHub Pages).
