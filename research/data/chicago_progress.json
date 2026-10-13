@@ -1,8 +1,8 @@
 {
- "cached": 151,
+ "cached": 182,
  "total": 182,
  "failed": [],
- "median_query_s": 9.0,
- "updated": "2026-10-13T04:49:47Z",
- "final": false
+ "median_query_s": 13.1,
+ "updated": "2026-10-13T04:59:18Z",
+ "final": true
 }

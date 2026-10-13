@@ -9,3 +9,54 @@
   acs seattle: 2024 acs5, 670 tracts
   wrote data/acs_seattle.csv (670 rows)
    acs took 5s
+  committed: Research data: acs
+== chicago
+  app token accepted (25 characters)
+  9/182 days already cached; fetching 173 (with an app token)
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  fetched 20/173 (last: pickup 2025-09-15, 222s)
+  fetched 40/173 (last: pickup 2025-10-21, 3s)
+  retry 2/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  fetched 60/173 (last: pickup 2025-11-01, 183s)
+  committed: Research data: chicago progress
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 2/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  fetched 80/173 (last: pickup 2025-11-30, 36s)
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=pickup_census_tract+as+tract%2C+pic: The read operation timed out
+  committed: Research data: chicago progress
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  fetched 100/173 (last: dropoff 2025-09-20, 3s)
+  retry 2/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  fetched 120/173 (last: dropoff 2025-10-11, 12s)
+  fetched 140/173 (last: dropoff 2025-10-29, 5s)
+  retry 2/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  committed: Research data: chicago progress
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 2/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 2/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 2/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 1/3 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  fetched 160/173 (last: dropoff 2025-11-20, 3s)
+  wrote data/chicago_pickups.csv.gz (146377 rows)
+  wrote data/chicago_daily_hourly.csv (2184 rows)
+  wrote data/chicago_dropoffs.csv.gz (146848 rows)
+  retry 1/4 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 2/4 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  retry 3/4 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
+  wrote data/chicago_tract_centroids.csv (802 rows)
+   chicago took 3655s
