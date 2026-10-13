@@ -75,39 +75,64 @@ def write_csv(path, rows, fields):
 
 # ---------------------------------------------------------------------------- chicago
 def chicago(job):
+    """One small query per day and side (pickup/drop-off), grouped by tract and hour.
+
+    A whole month grouped in one query made the server drop the connection, so each day is
+    fetched on its own and summed here into tract x weekday x hour. A per-date x hour city
+    total is kept too, for checking holidays against ordinary days."""
+    import datetime as dt
     token = os.environ.get("SOCRATA_APP_TOKEN")
     hdr = {"X-App-Token": token} if token else None
+    days = []
     for month in job.get("months", []):
         y, m = map(int, month.split("-"))
-        nxt = f"{y + (m == 12)}-{(m % 12) + 1:02d}"
-        where = f"trip_start_timestamp >= '{month}-01T00:00:00' AND trip_start_timestamp < '{nxt}-01T00:00:00'"
+        d = dt.date(y, m, 1)
+        while d.month == m:
+            days.append(d)
+            d += dt.timedelta(days=1)
+    for side in ("pickup", "dropoff"):
+        out = DATA / f"chicago_{side}s.csv.gz"
+        if out.exists() and not job.get("force"):
+            log(f"  skip {out.name} (exists)")
+            continue
+        sel = [f"{side}_census_tract as tract", f"{side}_community_area as ca",
+               "date_extract_hh(trip_start_timestamp) as hh", "count(*) as n", "sum(trip_seconds) as sec",
+               "sum(trip_miles) as mi", "sum(fare) as fare", "sum(case(tip > 0, 1, true, 0)) as tipped"]
+        if side == "pickup":
+            sel.append(f"sum(case(dropoff_community_area = {AIRPORT_CAS[0]} OR dropoff_community_area = {AIRPORT_CAS[1]}, 1, true, 0)) as to_airport")
+        agg, daily, t0 = {}, [], time.time()
+        for i, d in enumerate(days):
+            nxt = d + dt.timedelta(days=1)
+            q = {"$select": ", ".join(sel), "$group": "tract, ca, hh", "$limit": 50000,
+                 "$where": f"trip_start_timestamp >= '{d.isoformat()}T00:00:00' AND trip_start_timestamp < '{nxt.isoformat()}T00:00:00'"}
+            page = json.loads(get(SOCRATA, q, timeout=300, tries=5, headers=hdr))
+            dow = (d.weekday() + 1) % 7  # Socrata convention: 0 = Sunday
+            hours = {}
+            for r in page:
+                key = (r.get("tract") or "", r.get("ca") or "", dow, int(r["hh"]))
+                a = agg.setdefault(key, {"n": 0, "sec": 0.0, "mi": 0.0, "fare": 0.0, "tipped": 0, "to_airport": 0})
+                for f in a:
+                    a[f] += float(r.get(f) or 0)
+                hours[int(r["hh"])] = hours.get(int(r["hh"]), 0) + int(float(r["n"]))
+            daily += [{"date": d.isoformat(), "dow": dow, "hh": h, "n": n} for h, n in sorted(hours.items())]
+            if i % 10 == 0:
+                log(f"  {side}s {d}: {len(page)} groups, {sum(hours.values())} trips ({time.time() - t0:.0f}s)")
+        rows = [{"tract": k[0], "ca": k[1], "dow": k[2], "hh": k[3], **v} for k, v in agg.items()]
+        write_csv(out, rows, ["tract", "ca", "dow", "hh", "n", "sec", "mi", "fare", "tipped", "to_airport"])
+        if side == "pickup":
+            write_csv(DATA / "chicago_daily_hourly.csv", daily, ["date", "dow", "hh", "n"])
+    # tract centroids as Chicago reports them (2010 tracts), for mapping to 2020 tracts
+    cent = DATA / "chicago_tract_centroids.csv"
+    if not cent.exists() or job.get("force"):
+        seen = {}
         for side in ("pickup", "dropoff"):
-            out = DATA / f"chicago_{side}s_{month}.csv.gz"
-            if out.exists() and not job.get("force"):
-                log(f"  skip {out.name} (exists)")
-                continue
-            sel = [
-                f"{side}_census_tract as tract", f"{side}_community_area as ca",
-                f"{side}_centroid_latitude as lat", f"{side}_centroid_longitude as lng",
-                "date_extract_dow(trip_start_timestamp) as dow", "date_extract_hh(trip_start_timestamp) as hh",
-                "count(*) as n", "sum(trip_seconds) as sec", "sum(trip_miles) as mi", "sum(fare) as fare",
-                "sum(case(tip > 0, 1, true, 0)) as tipped",
-            ]
-            if side == "pickup":
-                sel.append(f"sum(case(dropoff_community_area = {AIRPORT_CAS[0]} OR dropoff_community_area = {AIRPORT_CAS[1]}, 1, true, 0)) as to_airport")
-            group = "tract, ca, lat, lng, dow, hh"
-            rows, offset, t0 = [], 0, time.time()
-            while True:
-                q = {"$select": ", ".join(sel), "$where": where, "$group": group,
-                     "$order": group, "$limit": 50000, "$offset": offset}
-                page = json.loads(get(SOCRATA, q, timeout=600, headers=hdr))
-                rows += page
-                log(f"  {month} {side}s offset {offset}: {len(page)} rows ({time.time() - t0:.0f}s)")
-                if len(page) < 50000:
-                    break
-                offset += 50000
-            fields = ["tract", "ca", "lat", "lng", "dow", "hh", "n", "sec", "mi", "fare", "tipped", "to_airport"]
-            write_csv(out, rows, fields)
+            q = {"$select": f"{side}_census_tract as tract, {side}_centroid_latitude as lat, {side}_centroid_longitude as lng",
+                 "$group": "tract, lat, lng", "$limit": 50000,
+                 "$where": f"{side}_census_tract IS NOT NULL AND trip_start_timestamp >= '{days[0].isoformat()}T00:00:00' AND trip_start_timestamp < '{(days[0] + dt.timedelta(days=7)).isoformat()}T00:00:00'"}
+            for r in json.loads(get(SOCRATA, q, timeout=300, tries=5, headers=hdr)):
+                if r.get("tract") and r.get("lat"):
+                    seen[r["tract"]] = {"tract": r["tract"], "lat": r["lat"], "lng": r["lng"]}
+        write_csv(cent, list(seen.values()), ["tract", "lat", "lng"])
 
 
 # ---------------------------------------------------------------------------- tracts
@@ -168,7 +193,10 @@ def acs(job):
                 for county in reg["counties"]:
                     txt = get(f"https://api.census.gov/data/{year}/acs/acs5",
                               {"get": ",".join(ACS_VARS), "for": "tract:*", "in": f"state:{reg['state']} county:{county}"}, tries=2)
-                    data = json.loads(txt)
+                    try:
+                        data = json.loads(txt)
+                    except ValueError:
+                        raise RuntimeError(f"ACS {year} not JSON: {txt[:300]!r}")
                     head = data[0]
                     for row in data[1:]:
                         d = dict(zip(head, row))
@@ -180,8 +208,11 @@ def acs(job):
                 log(f"  acs {name}: {year} acs5, {len(rows)} tracts")
                 write_csv(DATA / f"acs_{name}.csv", rows, ["geoid"] + list(ACS_VARS.values()))
                 break
-            except RuntimeError:
+            except RuntimeError as e:
+                log(f"  acs {name} {year}: {e}")
                 continue
+        else:
+            raise RuntimeError(f"ACS failed for {name}")
 
 
 # ---------------------------------------------------------------------------- lodes
@@ -299,34 +330,51 @@ def join(job):
                         counts[g][r["type"]] += 1
         rows = [{"geoid": g, **{f"osm_{k}": v.get(k, 0) for k in OSM_TYPES}} for g, v in counts.items()]
         write_csv(DATA / f"osm_counts_{name}.csv", rows, ["geoid"] + [f"osm_{k}" for k in OSM_TYPES])
-        # Chicago trip centroids -> 2020 tracts
+        # Chicago trips: map each reported (2010) tract to the 2020 tract containing its centroid
         if name == "chicago":
+            cent = {}
+            cpath = DATA / "chicago_tract_centroids.csv"
+            if cpath.exists():
+                with open(cpath) as f:
+                    for r in csv.DictReader(f):
+                        cent[r["tract"]] = _locate(tree, geoms, ids, float(r["lat"]), float(r["lng"]))
             for side in ("pickup", "dropoff"):
-                cache, out, kept, skipped = {}, {}, 0, 0
-                for p in sorted(DATA.glob(f"chicago_{side}s_2*.csv.gz")):
-                    with gzip.open(p, "rt") as f:
-                        for r in csv.DictReader(f):
-                            # Rows without a tract carry a community-area centroid; mapping that to
-                            # one tract would be wrong, so they are counted and left out.
-                            if not r["lat"] or not r["tract"]:
-                                skipped += float(r["n"] or 0)
-                                continue
-                            kept += float(r["n"] or 0)
-                            key = (r["lat"], r["lng"])
-                            if key not in cache:
-                                cache[key] = _locate(tree, geoms, ids, float(r["lat"]), float(r["lng"]))
-                            g = cache[key]
-                            if not g:
-                                continue
-                            k = (g, int(r["dow"]), int(r["hh"]))
-                            o = out.setdefault(k, {"n": 0, "sec": 0.0, "mi": 0.0, "fare": 0.0, "tipped": 0, "to_airport": 0})
-                            for fld in o:
-                                v = r.get(fld) or 0
-                                o[fld] += float(v)
-                log(f"  {side}s with a tract: {kept:.0f}; without (left out): {skipped:.0f}")
+                src = DATA / f"chicago_{side}s.csv.gz"
+                if not src.exists():
+                    continue
+                out, kept, skipped = {}, 0, 0
+                with gzip.open(src, "rt") as f:
+                    for r in csv.DictReader(f):
+                        g = cent.get(r["tract"]) if r["tract"] else None
+                        n = float(r["n"] or 0)
+                        if not g:
+                            skipped += n  # suppressed tract (community area only) or outside the tract layer
+                            continue
+                        kept += n
+                        k = (g, int(r["dow"]), int(r["hh"]))
+                        o = out.setdefault(k, {"n": 0, "sec": 0.0, "mi": 0.0, "fare": 0.0, "tipped": 0, "to_airport": 0})
+                        for fld in o:
+                            o[fld] += float(r.get(fld) or 0)
+                log(f"  {side}s mapped to a 2020 tract: {kept:.0f}; not mapped (left out): {skipped:.0f}")
                 rows = [{"geoid": k[0], "dow": k[1], "hh": k[2], **v} for k, v in out.items()]
                 write_csv(DATA / f"chicago_{side}s_by_tract2020.csv.gz", rows,
                           ["geoid", "dow", "hh", "n", "sec", "mi", "fare", "tipped", "to_airport"])
+
+
+def commit(msg):
+    """Save progress to the repo after each step, so a later failure keeps what finished."""
+    import subprocess
+    run = lambda *a: subprocess.run(a, cwd=ROOT.parent, capture_output=True, text=True)
+    run("git", "add", "-A", "research/data")
+    if run("git", "diff", "--cached", "--quiet").returncode == 0:
+        return
+    run("git", "commit", "-m", msg)
+    for _ in range(3):
+        if run("git", "pull", "--rebase", "origin", "main").returncode == 0 and run("git", "push", "origin", "HEAD:main").returncode == 0:
+            log(f"  committed: {msg}")
+            return
+        time.sleep(10)
+    log(f"  commit failed: {msg}")
 
 
 STEPS = {"chicago": chicago, "tracts": tracts, "acs": acs, "lodes": lodes, "osm": osm, "join": join}
@@ -348,6 +396,8 @@ def main():
             print(f"::error::{step} failed after {time.time() - t0:.0f}s: {str(e)[:400]}", flush=True)
         log(f"   {step} took {time.time() - t0:.0f}s")
         (DATA / "last_run.log").write_text("\n".join(LOG) + "\n")
+        if os.environ.get("COMMIT_EACH_STEP"):
+            commit(f"Research data: {step}")
     (DATA / "last_run.log").write_text("\n".join(LOG) + "\n")
     return 0 if ok else 1
 

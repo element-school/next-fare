@@ -26,7 +26,11 @@ jobs:
       - name: Pull data
         env:
           SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
-        run: python3 research/pull.py
+          COMMIT_EACH_STEP: '1'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 research/pull.py
       - name: Commit and push
         if: always()
         run: |
