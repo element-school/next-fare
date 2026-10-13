@@ -8,4 +8,4 @@
   wrote data/acs_chicago.csv (1332 rows)
   acs seattle: 2024 acs5, 670 tracts
   wrote data/acs_seattle.csv (670 rows)
-   acs took 4s
+   acs took 3s
