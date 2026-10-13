@@ -69,3 +69,4 @@
   wrote data/chicago_dropoffs_by_tract2020.csv.gz (108763 rows)
   wrote data/osm_counts_seattle.csv (479 rows)
    join took 6s
+  committed: Research data: join
