@@ -57,9 +57,14 @@ def get(url, params=None, timeout=300, tries=4, binary=False, headers=None):
             with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=timeout) as r:
                 b = r.read()
                 return b if binary else b.decode("utf-8")
+        except urllib.error.HTTPError as e:
+            body = e.read()[:300].decode("utf-8", "replace")
+            if 400 <= e.code < 500 and e.code != 429:  # the request itself is refused; retrying won't help
+                raise RuntimeError(f"HTTP {e.code}: {body}") from None
+            log(f"  retry {i + 1}/{tries} {url[:100]}: HTTP {e.code} {body[:150]}")
         except Exception as e:  # noqa: BLE001
-            log(f"  retry {i + 1}/{tries} {url[:140]}: {e}")
-            time.sleep(10 * (i + 1))
+            log(f"  retry {i + 1}/{tries} {url[:100]}: {e}")
+        time.sleep(10 * (i + 1))
     raise RuntimeError(f"failed: {url[:200]}")
 
 
@@ -110,8 +115,16 @@ def chicago(job):
     city total for checking holidays against ordinary days."""
     import datetime as dt
     from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
-    token = os.environ.get("SOCRATA_APP_TOKEN")
+    token = (os.environ.get("SOCRATA_APP_TOKEN") or "").strip() or None
     hdr = {"X-App-Token": token} if token else None
+    if token:  # an invalid token gets 403 on every query, so check it once up front
+        try:
+            get(SOCRATA, {"$limit": 1}, timeout=60, tries=2, headers=hdr)
+            log(f"  app token accepted ({len(token)} characters)")
+        except RuntimeError as e:
+            log(f"  app token rejected, continuing without it: {e}")
+            print(f"::warning::Socrata app token rejected ({len(token)} characters): {str(e)[:200]}", flush=True)
+            token, hdr = None, None
     days = []
     for month in job.get("months", []):
         y, m = map(int, month.split("-"))
