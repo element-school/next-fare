@@ -1,5 +1,11 @@
 == acs
-  acs chicago 2024: ACS 2024 not JSON: '<html style="font-size: 14px;">\n\n<head>\n    <title>Missing Key</title>\n    <link rel="icon" type="image/x-icon" href="favicon.ico">\n    <link rel="stylesheet" type="text/css" href="assets/styles.css">\n    <script type="text/javascript" src="assets/jquery-1.4.4.min.js"></script>\n    <script type="tex'
-  acs chicago 2023: ACS 2023 not JSON: '<html style="font-size: 14px;">\n\n<head>\n    <title>Missing Key</title>\n    <link rel="icon" type="image/x-icon" href="favicon.ico">\n    <link rel="stylesheet" type="text/css" href="assets/styles.css">\n    <script type="text/javascript" src="assets/jquery-1.4.4.min.js"></script>\n    <script type="tex'
-!! acs failed: RuntimeError('ACS failed for chicago')
-   acs took 1s
+  acs 2024 B01002: 2002 tracts
+  acs 2024 B01003: 2002 tracts
+  acs 2024 B08301: 2002 tracts
+  acs 2024 B19013: 2002 tracts
+  acs 2024 B25044: 2002 tracts
+  acs chicago: 2024 acs5, 1332 tracts
+  wrote data/acs_chicago.csv (1332 rows)
+  acs seattle: 2024 acs5, 670 tracts
+  wrote data/acs_seattle.csv (670 rows)
+   acs took 3s
