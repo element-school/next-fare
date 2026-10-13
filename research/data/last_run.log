@@ -14,3 +14,13 @@
   app token accepted (25 characters)
   skip chicago (outputs exist)
    chicago took 33s
+  committed: Research data: chicago
+== join
+  wrote data/osm_counts_chicago.csv (978 rows)
+  2010 tract points: 1319
+  pickups mapped to a 2020 tract: 14500973; not mapped (left out): 8780031
+  wrote data/chicago_pickups_by_tract2020.csv.gz (132804 rows)
+  dropoffs mapped to a 2020 tract: 14441298; not mapped (left out): 8839706
+  wrote data/chicago_dropoffs_by_tract2020.csv.gz (133276 rows)
+  wrote data/osm_counts_seattle.csv (479 rows)
+   join took 4s
