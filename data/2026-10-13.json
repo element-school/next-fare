@@ -1,7 +1,29 @@
 {
  "date": "2026-10-13",
- "generatedAt": "2026-10-12T03:30:00Z",
+ "generatedAt": "2026-10-13T08:34:52Z",
  "events": [
+  {
+   "name": "Young Miko: Late Checkout Tour",
+   "venue": "Climate Pledge Arena",
+   "lat": 47.6221,
+   "lng": -122.354,
+   "start": "20:00",
+   "out": "22:45",
+   "crowd": "big",
+   "kind": "concert",
+   "note": "Arena crowd floods the curb; work Belltown, SLU and Lower Queen Anne edges."
+  },
+  {
+   "name": "Lila Downs: Cambias mi Mundo",
+   "venue": "Moore Theatre",
+   "lat": 47.6114,
+   "lng": -122.3412,
+   "start": "19:30",
+   "out": "21:45",
+   "crowd": "mid",
+   "kind": "concert",
+   "note": "First let-out of the night; seated theater on 2nd Ave."
+  },
   {
    "name": "Iron & Wine",
    "venue": "5th Avenue Theatre",
@@ -11,11 +33,111 @@
    "out": "22:15",
    "crowd": "mid",
    "kind": "concert",
-   "note": "Start time unconfirmed",
+   "note": "Start time not posted; 8 PM assumed.",
    "unconfirmed": true
+  },
+  {
+   "name": "Mon Rovia",
+   "venue": "Showbox SoDo",
+   "lat": 47.5878,
+   "lng": -122.3341,
+   "start": "20:00",
+   "out": "22:45",
+   "crowd": "mid",
+   "kind": "concert"
+  },
+  {
+   "name": "Jackie Evans",
+   "venue": "Tractor Tavern",
+   "lat": 47.6655,
+   "lng": -122.3826,
+   "start": "20:00",
+   "out": "22:45",
+   "crowd": "small",
+   "kind": "concert",
+   "note": "Sold out."
+  },
+  {
+   "name": "Hayden Everett",
+   "venue": "Neumos",
+   "lat": 47.614,
+   "lng": -122.3196,
+   "start": "19:00",
+   "out": "22:00",
+   "crowd": "small",
+   "kind": "concert",
+   "note": "Doors 7 PM; 21+."
+  },
+  {
+   "name": "Pertinence",
+   "venue": "Barboza",
+   "lat": 47.614,
+   "lng": -122.3196,
+   "start": "19:00",
+   "out": "22:00",
+   "crowd": "small",
+   "kind": "concert",
+   "note": "Doors 7 PM; room under Neumos."
+  },
+  {
+   "name": "Weeknight comedy show",
+   "venue": "Comedy Underground",
+   "lat": 47.6006,
+   "lng": -122.3339,
+   "start": "20:30",
+   "out": "22:00",
+   "crowd": "small",
+   "kind": "comedy",
+   "note": "Regular Tuesday slot; lineup not posted.",
+   "unconfirmed": true
+  },
+  {
+   "name": "ALCS Game 2: Guardians at Rays (TBS)",
+   "venue": "On TV",
+   "start": "17:00",
+   "out": "20:15",
+   "crowd": "small",
+   "kind": "watch",
+   "note": "Neutral matchup; light bar crowds."
   }
  ],
+ "plan": {
+  "headline": "Quiet Tuesday with a stacked 9:30 to 11 PM let-out window: Lila Downs at the Moore, Iron & Wine at the 5th Avenue, Mon Rovia at Showbox SoDo and Young Miko at Climate Pledge. Best windows are 3 to 6:30 PM in the city and SEA, then the evening SEA arrival peak into the let-outs.",
+  "blocks": [
+   {
+    "start": "07:00",
+    "end": "15:00",
+    "zone": "Break",
+    "isBreak": true,
+    "play": "Skip the morning and midday. SEA departures hold steady at about 40 an hour, not a spike worth an early start."
+   },
+   {
+    "start": "15:00",
+    "end": "18:30",
+    "zone": "Seattle core + SEA",
+    "strength": "high",
+    "play": "Work downtown, SLU and First Hill pickups and take a downtown to SEA trip if one comes. If the SEA queue is short around 4 PM grab an arrival back into the city; otherwise head north to Georgetown or SoDo."
+   },
+   {
+    "start": "18:30",
+    "end": "19:15",
+    "zone": "Break",
+    "isBreak": true,
+    "play": "Eat in the city. Be rolling again by 7:15."
+   },
+   {
+    "start": "19:15",
+    "end": "23:30",
+    "zone": "SEA arrivals, then downtown let-outs",
+    "strength": "high",
+    "play": "Catch the 7 to 8 PM SEA arrival peak and bring a passenger back into Seattle. From 9:30 work the let-outs in order: the Moore (about 9:45), the 5th Avenue and Comedy Underground (10 to 10:15), then Showbox SoDo, the Capitol Hill clubs and Young Miko fans on the arena edges (10:45)."
+   }
+  ]
+ },
  "notes": [
-  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+  "No home games tonight.",
+  "SEA arrivals peak at 7 PM (48 flights) and 8 PM (42).",
+  "Small conferences only (Seattle Convention Center, morning); no hotel-trip effect.",
+  "Cruise season is over until spring."
  ]
 }
