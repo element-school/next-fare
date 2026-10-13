@@ -9,3 +9,8 @@
   acs seattle: 2024 acs5, 670 tracts
   wrote data/acs_seattle.csv (670 rows)
    acs took 2s
+  committed: Research data: acs
+== chicago
+  app token accepted (25 characters)
+  skip chicago (outputs exist)
+   chicago took 33s
