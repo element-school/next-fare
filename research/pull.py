@@ -75,13 +75,41 @@ def write_csv(path, rows, fields):
 
 
 # ---------------------------------------------------------------------------- chicago
+CACHE = ROOT / "cache" / "chicago"  # per-day query results, kept between runs by actions/cache (not in git)
+SUMS = ("n", "sec", "mi", "fare", "tipped", "to_airport")
+
+
+def _chicago_query(side, d, hdr):
+    import datetime as dt
+    sel = [f"{side}_census_tract as tract", f"{side}_community_area as ca",
+           "date_extract_hh(trip_start_timestamp) as hh", "count(*) as n", "sum(trip_seconds) as sec",
+           "sum(trip_miles) as mi", "sum(fare) as fare", "sum(case(tip > 0, 1, true, 0)) as tipped"]
+    if side == "pickup":
+        sel.append(f"sum(case(dropoff_community_area = {AIRPORT_CAS[0]} OR dropoff_community_area = {AIRPORT_CAS[1]}, 1, true, 0)) as to_airport")
+    nxt = d + dt.timedelta(days=1)
+    q = {"$select": ", ".join(sel), "$group": "tract, ca, hh", "$limit": 50000,
+         "$where": f"trip_start_timestamp >= '{d.isoformat()}T00:00:00' AND trip_start_timestamp < '{nxt.isoformat()}T00:00:00'"}
+    t0 = time.time()
+    page = json.loads(get(SOCRATA, q, timeout=180, tries=3, headers=hdr))
+    if len(page) >= 50000:
+        raise RuntimeError(f"{side} {d}: hit the 50,000-row limit")
+    path = CACHE / f"{side}_{d.isoformat()}.json.gz"
+    with gzip.open(path, "wt") as f:
+        json.dump(page, f)
+    return len(page), time.time() - t0
+
+
 def chicago(job):
     """One small query per day and side (pickup/drop-off), grouped by tract and hour.
 
-    A whole month grouped in one query made the server drop the connection, so each day is
-    fetched on its own and summed here into tract x weekday x hour. A per-date x hour city
-    total is kept too, for checking holidays against ordinary days."""
+    A whole month in one query made the server drop the connection, so each day is fetched on
+    its own, a few at a time, and cached. The step stops starting new queries after
+    CHICAGO_BUDGET_MIN minutes and the next run resumes from the cache, so a slow server costs
+    time rather than the whole pull. research/data/chicago_progress.json shows how far it got.
+    When every day is in, the days are summed into tract x weekday x hour, plus a per-date x hour
+    city total for checking holidays against ordinary days."""
     import datetime as dt
+    from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
     token = os.environ.get("SOCRATA_APP_TOKEN")
     hdr = {"X-App-Token": token} if token else None
     days = []
@@ -91,35 +119,74 @@ def chicago(job):
         while d.month == m:
             days.append(d)
             d += dt.timedelta(days=1)
-    for side in ("pickup", "dropoff"):
-        out = DATA / f"chicago_{side}s.csv.gz"
-        if out.exists() and not job.get("force"):
-            log(f"  skip {out.name} (exists)")
-            continue
-        sel = [f"{side}_census_tract as tract", f"{side}_community_area as ca",
-               "date_extract_hh(trip_start_timestamp) as hh", "count(*) as n", "sum(trip_seconds) as sec",
-               "sum(trip_miles) as mi", "sum(fare) as fare", "sum(case(tip > 0, 1, true, 0)) as tipped"]
-        if side == "pickup":
-            sel.append(f"sum(case(dropoff_community_area = {AIRPORT_CAS[0]} OR dropoff_community_area = {AIRPORT_CAS[1]}, 1, true, 0)) as to_airport")
-        agg, daily, t0 = {}, [], time.time()
-        for i, d in enumerate(days):
-            nxt = d + dt.timedelta(days=1)
-            q = {"$select": ", ".join(sel), "$group": "tract, ca, hh", "$limit": 50000,
-                 "$where": f"trip_start_timestamp >= '{d.isoformat()}T00:00:00' AND trip_start_timestamp < '{nxt.isoformat()}T00:00:00'"}
-            page = json.loads(get(SOCRATA, q, timeout=300, tries=5, headers=hdr))
+    outs = [DATA / f"chicago_{s}s.csv.gz" for s in ("pickup", "dropoff")]
+    if all(o.exists() for o in outs) and not job.get("force"):
+        log("  skip chicago (outputs exist)")
+        return
+    CACHE.mkdir(parents=True, exist_ok=True)
+    todo = [(s, d) for s in ("pickup", "dropoff") for d in days if not (CACHE / f"{s}_{d.isoformat()}.json.gz").exists()]
+    total = 2 * len(days)
+    log(f"  {total - len(todo)}/{total} days already cached; fetching {len(todo)} "
+        f"({'with' if token else 'without'} an app token)")
+    deadline = time.time() + float(os.environ.get("CHICAGO_BUDGET_MIN", "170")) * 60
+    workers = int(os.environ.get("CHICAGO_WORKERS", "4"))
+    failed, done, times, last_save = [], 0, [], time.time()
+
+    def progress(final=False):
+        cached = len(list(CACHE.glob("*.json.gz")))
+        (DATA / "chicago_progress.json").write_text(json.dumps({
+            "cached": cached, "total": total, "failed": [f"{s} {d}" for s, d in failed][-20:],
+            "median_query_s": round(sorted(times)[len(times) // 2], 1) if times else None,
+            "updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "final": final}, indent=1))
+        return cached
+
+    queue = list(todo)
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        running = {}
+        while queue or running:
+            while queue and len(running) < workers and time.time() < deadline:
+                s, d = queue.pop(0)
+                running[ex.submit(_chicago_query, s, d, hdr)] = (s, d)
+            if not running:
+                break
+            fin, _ = wait(running, timeout=60, return_when=FIRST_COMPLETED)
+            for fut in fin:
+                s, d = running.pop(fut)
+                try:
+                    _, secs = fut.result()
+                    times.append(secs)
+                    done += 1
+                    if done % 20 == 0:
+                        log(f"  fetched {done}/{len(todo)} (last: {s} {d}, {secs:.0f}s)")
+                except Exception as e:  # noqa: BLE001
+                    failed.append((s, d))
+                    log(f"  {s} {d} failed: {e}")
+            if time.time() - last_save > 600:  # show progress in the repo every 10 minutes
+                progress()
+                if os.environ.get("COMMIT_EACH_STEP"):
+                    commit("Research data: chicago progress")
+                last_save = time.time()
+    cached = progress(final=True)
+    if cached < total:
+        raise RuntimeError(f"chicago partial: {cached}/{total} days cached ({len(failed)} failed this run); "
+                           "run again to resume")
+
+    for side, out in zip(("pickup", "dropoff"), outs):
+        agg, daily = {}, []
+        for d in days:
+            with gzip.open(CACHE / f"{side}_{d.isoformat()}.json.gz", "rt") as f:
+                page = json.load(f)
             dow = (d.weekday() + 1) % 7  # Socrata convention: 0 = Sunday
             hours = {}
             for r in page:
                 key = (r.get("tract") or "", r.get("ca") or "", dow, int(r["hh"]))
-                a = agg.setdefault(key, {"n": 0, "sec": 0.0, "mi": 0.0, "fare": 0.0, "tipped": 0, "to_airport": 0})
-                for f in a:
-                    a[f] += float(r.get(f) or 0)
+                a = agg.setdefault(key, dict.fromkeys(SUMS, 0.0))
+                for fld in SUMS:
+                    a[fld] += float(r.get(fld) or 0)
                 hours[int(r["hh"])] = hours.get(int(r["hh"]), 0) + int(float(r["n"]))
             daily += [{"date": d.isoformat(), "dow": dow, "hh": h, "n": n} for h, n in sorted(hours.items())]
-            if i % 10 == 0:
-                log(f"  {side}s {d}: {len(page)} groups, {sum(hours.values())} trips ({time.time() - t0:.0f}s)")
         rows = [{"tract": k[0], "ca": k[1], "dow": k[2], "hh": k[3], **v} for k, v in agg.items()]
-        write_csv(out, rows, ["tract", "ca", "dow", "hh", "n", "sec", "mi", "fare", "tipped", "to_airport"])
+        write_csv(out, rows, ["tract", "ca", "dow", "hh"] + list(SUMS))
         if side == "pickup":
             write_csv(DATA / "chicago_daily_hourly.csv", daily, ["date", "dow", "hh", "n"])
     # tract centroids as Chicago reports them (2010 tracts), for mapping to 2020 tracts
@@ -130,7 +197,7 @@ def chicago(job):
             q = {"$select": f"{side}_census_tract as tract, {side}_centroid_latitude as lat, {side}_centroid_longitude as lng",
                  "$group": "tract, lat, lng", "$limit": 50000,
                  "$where": f"{side}_census_tract IS NOT NULL AND trip_start_timestamp >= '{days[0].isoformat()}T00:00:00' AND trip_start_timestamp < '{(days[0] + dt.timedelta(days=7)).isoformat()}T00:00:00'"}
-            for r in json.loads(get(SOCRATA, q, timeout=300, tries=5, headers=hdr)):
+            for r in json.loads(get(SOCRATA, q, timeout=300, tries=4, headers=hdr)):
                 if r.get("tract") and r.get("lat"):
                     seen[r["tract"]] = {"tract": r["tract"], "lat": r["lat"], "lng": r["lng"]}
         write_csv(cent, list(seen.values()), ["tract", "lat", "lng"])

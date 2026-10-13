@@ -23,16 +23,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main   # latest main, so a queued run sees data an earlier run committed
+      - name: Restore query cache
+        uses: actions/cache/restore@v4
+        with:
+          path: research/cache
+          key: research-cache-${{ github.run_id }}
+          restore-keys: research-cache-
       - name: Install
         run: python3 -m pip install --quiet shapely pyshp
       - name: Pull data
         env:
           SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
           COMMIT_EACH_STEP: '1'
+          CHICAGO_BUDGET_MIN: '170'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python3 research/pull.py
+      - name: Save query cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: research/cache
+          key: research-cache-${{ github.run_id }}
       - name: Commit and push
         if: always()
         run: |
