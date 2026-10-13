@@ -203,18 +203,6 @@ def chicago(job):
         write_csv(out, rows, ["tract", "ca", "dow", "hh"] + list(SUMS))
         if side == "pickup":
             write_csv(DATA / "chicago_daily_hourly.csv", daily, ["date", "dow", "hh", "n"])
-    # tract centroids as Chicago reports them (2010 tracts), for mapping to 2020 tracts
-    cent = DATA / "chicago_tract_centroids.csv"
-    if not cent.exists() or job.get("force"):
-        seen = {}
-        for side in ("pickup", "dropoff"):
-            q = {"$select": f"{side}_census_tract as tract, {side}_centroid_latitude as lat, {side}_centroid_longitude as lng",
-                 "$group": "tract, lat, lng", "$limit": 50000,
-                 "$where": f"{side}_census_tract IS NOT NULL AND trip_start_timestamp >= '{days[0].isoformat()}T00:00:00' AND trip_start_timestamp < '{(days[0] + dt.timedelta(days=7)).isoformat()}T00:00:00'"}
-            for r in json.loads(get(SOCRATA, q, timeout=300, tries=4, headers=hdr)):
-                if r.get("tract") and r.get("lat"):
-                    seen[r["tract"]] = {"tract": r["tract"], "lat": r["lat"], "lng": r["lng"]}
-        write_csv(cent, list(seen.values()), ["tract", "lat", "lng"])
 
 
 # ---------------------------------------------------------------------------- tracts
@@ -439,6 +427,23 @@ def _locate(tree, geoms, ids, lat, lng):
     return ids[j] if geoms[j].distance(p) < 0.003 else None
 
 
+def _tracts2010_points():
+    """Internal points of Cook County's 2010 tracts (the IDs Chicago's trip data uses), from the
+    Census TIGER/Line 2010 tract file; only the attribute table is read."""
+    import shapefile  # pyshp
+    b = get("https://www2.census.gov/geo/tiger/TIGER2010/TRACT/2010/tl_2010_17031_tract10.zip", binary=True, tries=3)
+    z = zipfile.ZipFile(io.BytesIO(b))
+    dbf = [n for n in z.namelist() if n.endswith(".dbf")][0]
+    r = shapefile.Reader(dbf=io.BytesIO(z.read(dbf)))
+    fields = [f[0] for f in r.fields[1:]]
+    pts = {}
+    for rec in r.iterRecords():
+        d = dict(zip(fields, rec))
+        pts[d["GEOID10"]] = (float(d["INTPTLAT10"]), float(d["INTPTLON10"]))
+    log(f"  2010 tract points: {len(pts)}")
+    return pts
+
+
 def join(job):
     for name in REGIONS:
         tree, geoms, ids = _index(name)
@@ -456,12 +461,7 @@ def join(job):
         write_csv(DATA / f"osm_counts_{name}.csv", rows, ["geoid"] + [f"osm_{k}" for k in OSM_TYPES])
         # Chicago trips: map each reported (2010) tract to the 2020 tract containing its centroid
         if name == "chicago":
-            cent = {}
-            cpath = DATA / "chicago_tract_centroids.csv"
-            if cpath.exists():
-                with open(cpath) as f:
-                    for r in csv.DictReader(f):
-                        cent[r["tract"]] = _locate(tree, geoms, ids, float(r["lat"]), float(r["lng"]))
+            cent = {t: _locate(tree, geoms, ids, la, lo) for t, (la, lo) in _tracts2010_points().items()}
             for side in ("pickup", "dropoff"):
                 src = DATA / f"chicago_{side}s.csv.gz"
                 if not src.exists():
