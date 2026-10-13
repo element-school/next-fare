@@ -60,3 +60,12 @@
   retry 3/4 https://data.cityofchicago.org/resource/6dvr-xwnh.json?%24select=dropoff_census_tract+as+tract%2C+dr: The read operation timed out
   wrote data/chicago_tract_centroids.csv (802 rows)
    chicago took 3655s
+  committed: Research data: chicago
+== join
+  wrote data/osm_counts_chicago.csv (978 rows)
+  pickups mapped to a 2020 tract: 14177598; not mapped (left out): 9103406
+  wrote data/chicago_pickups_by_tract2020.csv.gz (110472 rows)
+  dropoffs mapped to a 2020 tract: 14080388; not mapped (left out): 9200616
+  wrote data/chicago_dropoffs_by_tract2020.csv.gz (108763 rows)
+  wrote data/osm_counts_seattle.csv (479 rows)
+   join took 6s
