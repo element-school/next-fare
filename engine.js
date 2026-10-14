@@ -132,16 +132,26 @@
   }
 
   // ---------- adjustments ----------
+  // Let-outs are windows (outFromMin..outToMin), not points: a show's end is rarely known to the
+  // minute. A wide window means we don't really know, so the boost shrinks with its width.
+  function outLabel(e) {
+    return e.outToMin - e.outFromMin >= 10 ? `${fmtMin(e.outFromMin)}–${fmtMin(e.outToMin)}` : `~${fmtMin(e.outFromMin)}`;
+  }
+  function soften(boost, e) {
+    const len = (e.outToMin - e.outFromMin) + 20;
+    return 1 + (boost - 1) * Math.min(1, 45 / Math.max(45, len));
+  }
   function eventsEffect(zone, T, ctx) {
     let mult = 1; const why = [];
     for (const e of ctx.events || []) {
-      if (e.outMin == null) continue;
-      const inEgress = T >= e.outMin - 15 && T <= e.outMin + 35;
+      if (e.outFromMin == null) continue;
+      const inEgress = T >= e.outFromMin - 10 && T <= e.outToMin + 25;
       const inPre = e.startMin != null && T >= e.startMin - 75 && T <= e.startMin - 15;
-      const during = e.startMin != null && T > e.startMin && T < e.outMin - 15;
+      const during = e.startMin != null && T > e.startMin && T < e.outFromMin - 10;
+      const when = outLabel(e) + (e.outBasis ? ` (${e.outBasis})` : '');
       if (e.kind === 'watch') {
         if (inEgress && ['nightlife', 'campus', 'center'].includes(zone.type)) {
-          mult *= 1.25; why.push(`${e.name}: bar crowds head home around ${fmtMin(e.outMin)}`);
+          mult *= soften(1.25, e); why.push(`${e.name}: bar crowds head home ${when}`);
         }
         continue;
       }
@@ -149,13 +159,13 @@
       const d = km(zone, e);
       if (inEgress) {
         if (e.crowd === 'big') {
-          if (d <= 0.8) { mult *= 0.85; why.push(`${e.name} lets out ~${fmtMin(e.outMin)}, but the curb there floods with drivers`); }
-          else if (d <= 3) { mult *= 1.45; why.push(`${e.name} lets out ~${fmtMin(e.outMin)}: crowds spill here, drivers stay at the venue`); }
-          else if (d <= 5) { mult *= 1.1; }
+          if (d <= 0.8) { mult *= 0.85; why.push(`${e.name} lets out ${when}, but the curb there floods with drivers`); }
+          else if (d <= 3) { mult *= soften(1.45, e); why.push(`${e.name} lets out ${when}: crowds spill here, drivers stay at the venue`); }
+          else if (d <= 5) { mult *= soften(1.1, e); }
         } else if (e.crowd === 'mid') {
-          if (d <= 1.0) { mult *= 1.6; why.push(`${e.name} lets out ~${fmtMin(e.outMin)}, mid-size crowd, few drivers`); }
-          else if (d <= 3) { mult *= 1.15; }
-        } else if (d <= 0.8) { mult *= 1.3; why.push(`${e.name} lets out ~${fmtMin(e.outMin)}`); }
+          if (d <= 1.0) { mult *= soften(1.6, e); why.push(`${e.name} lets out ${when}, mid-size crowd, few drivers`); }
+          else if (d <= 3) { mult *= soften(1.15, e); }
+        } else if (d <= 0.8) { mult *= soften(1.3, e); why.push(`${e.name} lets out ${when}`); }
       } else if (inPre && e.crowd === 'big' && zone.type === 'residential' && d <= 25) {
         mult *= 1.08;
       } else if (during && d <= 1.0 && e.kind === 'festival') {
@@ -243,62 +253,52 @@
   function fmtMin(m) { m = ((m % 1440) + 1440) % 1440; let h = Math.floor(m / 60); const mm = String(m % 60).padStart(2, '0'); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${mm} ${ap}`; }
   function meter(rate) { return rate >= 30 ? 5 : rate >= 24 ? 4 : rate >= 18 ? 3 : rate >= 12 ? 2 : 1; }
 
+  // How far a single "out" estimate can be off, by kind (minutes before, after). Used only when a
+  // data file gives "out" without a researched window.
+  const OUT_SPREAD = { theatre: [10, 20], comedy: [10, 20], concert: [20, 45], sports: [15, 30], watch: [10, 25], festival: [30, 30], convention: [30, 30] };
   // Turn data-file events (local HH:MM on a given day) into minutes relative to today 00:00.
-  function prepareEvents(files, todayYmd) {
+  // fixes: {"<date>|<name>": {from, to}} the driver entered (e.g. from Uber's event hours); they win.
+  function prepareEvents(files, todayYmd, fixes) {
     const out = [];
     for (const f of files || []) {
       if (!f || !Array.isArray(f.events)) continue;
       const offset = f.date === todayYmd ? 0 : -1440;
       for (const e of f.events) {
-        const s = toMin(e.start), o = toMin(e.out);
-        if (o == null) continue;
-        let startMin = s == null ? null : s + offset, outMin = o + offset;
-        if (startMin != null && outMin < startMin) outMin += 1440;
-        out.push(Object.assign({}, e, { startMin, outMin }));
+        const fix = fixes && fixes[f.date + '|' + e.name];
+        const s = toMin(e.start);
+        let from = toMin(fix ? fix.from : e.outFrom), to = toMin(fix ? fix.to : e.outTo), basis = fix ? 'your correction' : (e.outBasis || null);
+        const o = toMin(e.out);
+        if (from == null || to == null) {
+          if (o == null) continue;
+          const sp = OUT_SPREAD[e.kind] || [15, 30];
+          const wide = e.unconfirmed ? 15 : 0;
+          from = o - sp[0] - wide; to = o + sp[1] + wide; basis = basis || 'rough estimate';
+        }
+        const startMin = s == null ? null : s + offset;
+        let fromMin = from + offset, toMin_ = to + offset;
+        const ref = startMin != null ? startMin : fromMin - 120;
+        while (fromMin < ref) fromMin += 1440;           // let-out after midnight
+        while (toMin_ < fromMin) toMin_ += 1440;
+        out.push(Object.assign({}, e, { date: f.date, startMin, outFromMin: fromMin, outToMin: toMin_, outMin: fromMin, outBasis: basis, fixed: !!fix }));
       }
     }
     return out;
   }
 
-
   // ---------- small venues near the driver (from OpenStreetMap, fetched by the app) ----------
-  // Typical let-out times by venue kind and weekday (minutes after midnight; > 1440 = after midnight).
-  const H = (h, m) => h * 60 + (m || 0);
-  function venueLetouts(kind, dow) {
-    const thuSun = [0, 4, 5, 6].includes(dow), friSat = dow === 5 || dow === 6;
-    switch (kind) {
-      case 'comedy':  return thuSun ? [H(21), H(23, 15)] : dow === 3 ? [H(21)] : [];
-      case 'theatre': return [...(dow >= 2 && dow <= 6 ? [H(22)] : []), ...(dow === 6 || dow === 0 ? [H(16, 30)] : [])];
-      case 'music':   return [H(23, 15)];
-      case 'club':    return friSat ? [H(26)] : thuSun ? [H(25)] : [];
-      case 'cinema':  return [H(21, 30), H(23, 45)];
-      case 'arts':    return thuSun ? [H(21, 30)] : [];
-      default:        return [];
+  // No guessed let-out times by venue type any more (a multiplex has no single let-out, and a
+  // "typical" time sent the driver to empty curbs). A venue counts only through a researched event
+  // at it, which eventsEffect already scores; this just matches nearby venues to those events.
+  function venueEvent(v, events) {
+    let best = null;
+    for (const e of events || []) {
+      if (e.lat == null || e.lng == null || e.outFromMin == null) continue;
+      const d = km(v, e);
+      if (d <= 0.15 && (!best || e.outFromMin < best.outFromMin)) best = e;
     }
+    return best;
   }
-  const VENUE_BOOST = { comedy: 1.15, theatre: 1.2, music: 1.15, club: 1.2, cinema: 1.08, arts: 1.1 };
-  // Let-outs within [-10, +35] min of T, for venues within 600 m of the driver.
-  function venuesNow(ctx, T) {
-    const hits = [];
-    for (const v of ctx.venues || []) {
-      if (v.dist == null || v.dist > 0.6) continue;
-      const today = venueLetouts(v.kind, ctx.dow);
-      const yday = venueLetouts(v.kind, (ctx.dow + 6) % 7).map(m => m - 1440);
-      for (const out of [...today, ...yday]) {
-        if (out - T >= -10 && out - T <= 35) { hits.push({ v, out }); break; }
-      }
-    }
-    return hits;
-  }
-  function venuesEffect(ctx, T) {
-    const hits = venuesNow(ctx, T);
-    let mult = 1; const why = [];
-    for (const h of hits.slice(0, 3)) {
-      mult *= VENUE_BOOST[h.v.kind] || 1.1;
-      why.push(`${h.v.name} (${Math.round(h.v.dist * 1000)} m away) usually lets out around ${fmtMin(h.out)}`);
-    }
-    return { mult: Math.min(mult, 1.35), why, hits };
-  }
+  function venuesEffect() { return { mult: 1, why: [], hits: [] }; }
 
   // ---------- main ----------
   function recommend(ctx) {
@@ -325,8 +325,8 @@
     cands.sort((a, b) => b.score - a.score);
     const stay = { zone: here, travel: 0, rate: hereVal.rate, score: hereVal.rate, why: hereVal.why };
     const best = cands[0];
-    const upcoming = (ctx.events || []).filter(e => e.outMin != null && e.outMin >= now - 10 && e.outMin <= now + 240)
-      .sort((a, b) => a.outMin - b.outMin);
+    const upcoming = (ctx.events || []).filter(e => e.outFromMin != null && e.outToMin >= now - 5 && e.outFromMin <= now + 240)
+      .sort((a, b) => a.outFromMin - b.outFromMin);
 
     const base = { here, hereInside: nz.inside, seattle: seattleHere, upcoming, venueHits: ven.hits, alternatives: [] };
     const home = ctx.settings && ctx.settings.homeLat != null ? { lat: ctx.settings.homeLat, lng: ctx.settings.homeLng, name: 'Home' } : null;
@@ -425,6 +425,6 @@
     return Object.assign(base, { action: 'move', verb: 'Head to', target: best.zone, rate: best.rate, travel: best.travel, meter: meter(best.rate), reasons, alternatives: [stay, ...cands.slice(1, 3)] });
   }
 
-  const api = { recommend, venueLetouts, nearestZone, driveMinutes, valueAt, seaIndex, prepareEvents, historyStats, daypart, km, fmtMin, toMin, meter, ZONE_BY_ID };
+  const api = { recommend, venueEvent, outLabel, nearestZone, driveMinutes, valueAt, seaIndex, prepareEvents, historyStats, daypart, km, fmtMin, toMin, meter, ZONE_BY_ID };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.NF_ENGINE = api;
 })(typeof window !== 'undefined' ? window : globalThis);

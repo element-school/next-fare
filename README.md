@@ -14,7 +14,8 @@ It runs entirely in the browser. There is no server, no account, and no connecti
 - **Rain** from the NWS hourly forecast. The first hour of rain after a dry stretch counts most.
 - **Pay floor**: pickups inside Seattle pay $0.70/min + $1.63/mi (2026) vs. $0.40/min + $1.38/mi outside.
 - **Drive time** to each zone.
-- **Small venues nearby**: comedy clubs, theaters, music venues, nightclubs and cinemas within about 900 m (from OpenStreetMap), with the times that kind of venue usually lets out. A let-out in the next half hour raises the score for your spot.
+- **Let-out windows, not guesses**: each event carries a window (`outFrom`–`outTo`) and where it came from (`outBasis`: a published run time, recent shows on the tour, Uber's event hours, or a rough estimate). A wide window means the end time isn't really known, so it counts for less. Nearby venues (from OpenStreetMap) are listed with tonight's show only when the research found one; there are no "usually lets out" times by venue type any more, since a multiplex or an unlisted venue has no reliable let-out.
+- **Your corrections**: Fix time on a let-out stores the window you saw (for example Uber's event hours) on the phone; it overrides the data file for that event and is included in the export, so actual let-outs can be learned from.
 - **Your history**: the minutes between check-ins (≈ wait for a ping + the trip) by zone and time of day, once a spot has at least 3.
 
 The rates are relative estimates for comparing options, not earnings predictions. The app can't see Uber's surge pricing or nearby drivers.
@@ -29,7 +30,8 @@ The rates are relative estimates for comparing options, not earnings predictions
   "generatedAt": "2026-10-17T03:45:00Z",
   "events": [
     { "name": "Maná", "venue": "Climate Pledge Arena", "lat": 47.6221, "lng": -122.354,
-      "start": "20:30", "out": "23:15", "crowd": "big", "kind": "concert", "note": "", "unconfirmed": false }
+      "start": "20:30", "out": "23:15", "outFrom": "22:45", "outTo": "23:45", "outBasis": "recent tour dates ran 2h15 after a 45 min opener",
+      "crowd": "big", "kind": "concert", "note": "", "unconfirmed": false }
   ],
   "sea": { "arrivals": [24 numbers, 0-100], "departures": [24 numbers, 0-100] },
   "pae": { "arrivals": ["HH:MM", "..."] },
@@ -37,7 +39,7 @@ The rates are relative estimates for comparing options, not earnings predictions
 }
 ```
 
-`crowd` is `big` (arena or stadium), `mid` (about 1,000–3,000) or `small`. `kind` is one of `concert`, `sports`, `festival`, `convention`, `comedy`, `theatre` or `watch` (a TV game; no coordinates, boosts bar districts). Times are Pacific, 24-hour; an `out` earlier than `start` means after midnight. `sea` and `pae` are optional; without them the app uses a typical-day SEA profile.
+`crowd` is `big` (arena or stadium), `mid` (about 1,000–3,000) or `small`. `kind` is one of `concert`, `sports`, `festival`, `convention`, `comedy`, `theatre` or `watch` (a TV game; no coordinates, boosts bar districts). Times are Pacific, 24-hour; an `out` earlier than `start` means after midnight. `outFrom`/`outTo` is the let-out window and `outBasis` says where it came from; `out` is the window's middle, kept for older readers. Without a window the app widens `out` by kind (concerts −20/+45 min, theater and comedy −10/+20, sports −15/+30) and labels it a rough estimate. `sea` and `pae` are optional; without them the app uses a typical-day SEA profile.
 
 - `data/flights/YYYY-MM-DD.json`: scheduled passenger flights at SEA and PAE, written each evening by the **Flight schedules** GitHub Action (`.github/workflows/flights.yml`, `scripts/flights.py`) from [AeroDataBox](https://aerodatabox.com/). It overrides `sea` and `pae` in the events file. `sea.arrivals` is a demand index for riders at the curb (flights shifted 30 minutes after landing), `sea.departures` a drop-off index (flights shifted 90 minutes before take-off), both scaled so the busiest hour is 100. `sea.scheduled` keeps the raw counts by scheduled hour. Codeshares, cargo and private flights are excluded.
   - Setup: get a free RapidAPI key for AeroDataBox (Basic plan, 400 units a month; this uses about 6 a day) and save it as the repository secret `AERODATABOX_KEY` (Settings → Secrets and variables → Actions). Without the key the Action skips and the app uses its typical-day profile.

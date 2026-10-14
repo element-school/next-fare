@@ -1,6 +1,6 @@
 {
  "date": "2026-10-13",
- "generatedAt": "2026-10-13T08:34:52Z",
+ "generatedAt": "2026-10-14T05:10:19Z",
  "events": [
   {
    "name": "Young Miko: Late Checkout Tour",
@@ -8,10 +8,13 @@
    "lat": 47.6221,
    "lng": -122.354,
    "start": "20:00",
-   "out": "22:45",
+   "out": "23:30",
    "crowd": "big",
    "kind": "concert",
-   "note": "Arena crowd floods the curb; work Belltown, SLU and Lower Queen Anne edges."
+   "note": "Arena crowd floods the curb; work Belltown, SLU and Lower Queen Anne edges.",
+   "outFrom": "23:00",
+   "outTo": "00:00",
+   "outBasis": "Uber event hours"
   },
   {
    "name": "Lila Downs: Cambias mi Mundo",
@@ -19,10 +22,13 @@
    "lat": 47.6114,
    "lng": -122.3412,
    "start": "19:30",
-   "out": "21:45",
+   "out": "21:30",
    "crowd": "mid",
    "kind": "concert",
-   "note": "First let-out of the night; seated theater on 2nd Ave."
+   "note": "First let-out of the night; seated theater on 2nd Ave.",
+   "outFrom": "21:00",
+   "outTo": "22:15",
+   "outBasis": "a July tour date ran 90 min, per setlist.fm"
   },
   {
    "name": "Iron & Wine",
@@ -34,7 +40,10 @@
    "crowd": "mid",
    "kind": "concert",
    "note": "Start time not posted; 8 PM assumed.",
-   "unconfirmed": true
+   "unconfirmed": true,
+   "outFrom": "21:45",
+   "outTo": "22:45",
+   "outBasis": "estimate; start time not posted"
   },
   {
    "name": "Mon Rovia",
@@ -42,9 +51,12 @@
    "lat": 47.5878,
    "lng": -122.3341,
    "start": "20:00",
-   "out": "22:45",
+   "out": "22:30",
    "crowd": "mid",
-   "kind": "concert"
+   "kind": "concert",
+   "outFrom": "22:00",
+   "outTo": "23:00",
+   "outBasis": "estimate: opener plus about 90 min"
   },
   {
    "name": "Jackie Evans",
@@ -55,7 +67,10 @@
    "out": "22:45",
    "crowd": "small",
    "kind": "concert",
-   "note": "Sold out."
+   "note": "Sold out.",
+   "outFrom": "22:00",
+   "outTo": "23:15",
+   "outBasis": "estimate: club show"
   },
   {
    "name": "Hayden Everett",
@@ -63,10 +78,13 @@
    "lat": 47.614,
    "lng": -122.3196,
    "start": "19:00",
-   "out": "22:00",
+   "out": "22:15",
    "crowd": "small",
    "kind": "concert",
-   "note": "Doors 7 PM; 21+."
+   "note": "Doors 7 PM; 21+.",
+   "outFrom": "21:30",
+   "outTo": "23:00",
+   "outBasis": "estimate: club show from 7 PM doors"
   },
   {
    "name": "Pertinence",
@@ -74,10 +92,13 @@
    "lat": 47.614,
    "lng": -122.3196,
    "start": "19:00",
-   "out": "22:00",
+   "out": "22:15",
    "crowd": "small",
    "kind": "concert",
-   "note": "Doors 7 PM; room under Neumos."
+   "note": "Doors 7 PM; room under Neumos.",
+   "outFrom": "21:30",
+   "outTo": "23:00",
+   "outBasis": "estimate: club show from 7 PM doors"
   },
   {
    "name": "Weeknight comedy show",
@@ -89,7 +110,10 @@
    "crowd": "small",
    "kind": "comedy",
    "note": "Regular Tuesday slot; lineup not posted.",
-   "unconfirmed": true
+   "unconfirmed": true,
+   "outFrom": "21:50",
+   "outTo": "22:15",
+   "outBasis": "typical comedy set length"
   },
   {
    "name": "ALCS Game 2: Guardians at Rays (TBS)",
@@ -98,7 +122,10 @@
    "out": "20:15",
    "crowd": "small",
    "kind": "watch",
-   "note": "Neutral matchup; light bar crowds."
+   "note": "Neutral matchup; light bar crowds.",
+   "outFrom": "19:45",
+   "outTo": "20:45",
+   "outBasis": "typical postseason game length"
   }
  ],
  "plan": {

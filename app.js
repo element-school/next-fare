@@ -151,15 +151,16 @@
     const box = $('#venues');
     if (!S.venues.length) { box.className = 'small'; box.textContent = 'No comedy clubs, theaters, music venues or cinemas mapped within about 900 m.'; return; }
     const p = pt(); const now = p.h * 60 + p.m;
-    const hitNames = new Set((r && r.venueHits || []).map(h => h.v.name));
     box.className = '';
     box.innerHTML = S.venues.slice(0, 6).map(v => {
-      const outs = E.venueLetouts(v.kind, p.dow).filter(m => m > now - 30).map(m => E.fmtMin(m));
+      const ev = E.venueEvent(v, S.events || []);
+      const live = ev && ev.outToMin >= now - 5;
       const link = safeLink(v.web) || `https://www.google.com/search?q=${encodeURIComponent(v.name + ' Seattle shows tonight')}`;
-      return `<div class="row"><span class="n">${esc(v.name)}${hitNames.has(v.name) ? ' <span class="tag sea">letting out soon</span>' : ''}</span>
-        <span class="d">${esc(KIND_LABEL[v.kind])} · ${Math.round(v.dist * 1000)} m${outs.length ? ` · usually out ~${esc(outs.join(', ~'))}` : ' · nothing typical left today'}</span>
+      const info = live ? `${ev.name} · out ${E.outLabel(ev)}${ev.outBasis ? ` (${ev.outBasis})` : ''}` : 'no show in tonight’s research';
+      return `<div class="row"><span class="n">${esc(v.name)}${live && ev.outFromMin - now <= 30 ? ' <span class="tag sea">letting out soon</span>' : ''}</span>
+        <span class="d">${esc(KIND_LABEL[v.kind])} · ${Math.round(v.dist * 1000)} m · ${esc(info)}</span>
         <span class="r"><a class="go" href="${esc(link)}" target="_blank" rel="noopener">Shows ›</a></span></div>`;
-    }).join('') + '<p class="small">Let-out times are typical for this kind of venue. Tap Shows to check tonight’s schedule.</p>';
+    }).join('') + '<p class="small">Times appear only when tonight’s research found a show here. A venue with no listed show doesn’t count toward the advice.</p>';
   }
   function safeLink(u) { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : null; } catch { return null; } }
 
@@ -175,7 +176,7 @@
   }
 
   /* ---------- advice log (on this phone; exported from Settings) ---------- */
-  const APP_VERSION = '20261013-0026';
+  const APP_VERSION = '20261014-0511';
   function logAdvice(rec, mode) {
     const now = Date.now(), loc = S.loc;
     const entry = {
@@ -214,7 +215,7 @@
   }
   async function exportAdvice() {
     const p = pt();
-    const body = JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Where Next', version: APP_VERSION, advice: S.advice, checkins: S.checkins });
+    const body = JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Where Next', version: APP_VERSION, advice: S.advice, checkins: S.checkins, eventFixes: store.get('eventFix', {}) });
     const name = `where-next-log-${p.ymd}.json`;
     const file = new File([body], name, { type: 'application/json' });
     try {
@@ -360,12 +361,12 @@
     const ctx = {
       loc: S.loc, h: p.h, m: p.m, dow: p.dow,
       data: S.files.find(f => f.date === p.ymd) || null,
-      events: E.prepareEvents(S.files, p.ymd),
+      events: E.prepareEvents(S.files, p.ymd, store.get('eventFix', {})),
       weather: S.weather, history: E.historyStats(S.checkins),
       settings: S.settings, queue: S.queue, cityIsSeattle: S.cityIsSeattle,
       venues: S.venues
     };
-    const rec = E.recommend(ctx); S.rec = rec;
+    const rec = E.recommend(ctx); S.rec = rec; S.events = ctx.events;
     if (log) logAdvice(rec, log);
     render(rec, ctx);
     renderRhythm();
@@ -429,12 +430,33 @@
         <span class="r">${dots(E.meter(a.rate))}${isHere ? '' : `<a class="go" href="${esc(navUrl(a.zone, S.settings.navApp))}" target="_blank" rel="noopener">${a.travel} min ›</a>`}</span></div>`;
     }).join('');
 
-    // Upcoming let-outs
+    // Upcoming let-outs: a window, where it came from, and a way to correct it (e.g. from Uber's event hours)
     const ups = r.upcoming || [];
     $('#upPanel').hidden = !ups.length;
-    $('#ups').innerHTML = ups.map(e => `<div class="row"><span class="n">${esc(e.name)}</span>
-      <span class="d">${esc([e.venue, e.crowd === 'big' ? 'big crowd: work the edges' : e.crowd === 'mid' ? 'mid-size: good odds' : 'small'].filter(Boolean).join(' · '))}</span>
-      <span class="r mono">~${esc(E.fmtMin(e.outMin))}</span></div>`).join('');
+    const hhmm = m => { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+    $('#ups').innerHTML = ups.map((e, i) => `<div class="row"><span class="n">${esc(e.name)}</span>
+      <span class="d">${esc([e.venue, e.crowd === 'big' ? 'big crowd: work the edges' : e.crowd === 'mid' ? 'mid-size: good odds' : 'small', e.outBasis].filter(Boolean).join(' · '))}</span>
+      <span class="r"><span class="mono">${esc(E.outLabel(e))}</span><button class="linkbtn" type="button" data-fix="${i}">${e.fixed ? 'Edit fix' : 'Fix time'}</button></span>
+      <form class="fixform" data-form="${i}" hidden>
+        <label>Out from <input type="time" name="from" value="${hhmm(e.outFromMin)}" required></label>
+        <label>to <input type="time" name="to" value="${hhmm(e.outToMin)}" required></label>
+        <button type="submit" class="ghost">Save</button>${e.fixed ? '<button type="button" class="ghost" data-unfix="1">Clear</button>' : ''}
+        <span class="small">For example the event hours Uber shows you.</span>
+      </form></div>`).join('');
+    $('#ups').querySelectorAll('[data-fix]').forEach(b => b.addEventListener('click', () => {
+      const f = $('#ups').querySelector(`[data-form="${b.dataset.fix}"]`); f.hidden = !f.hidden;
+    }));
+    $('#ups').querySelectorAll('form[data-form]').forEach(f => {
+      const e = ups[+f.dataset.form]; const key = e.date + '|' + e.name;
+      f.addEventListener('submit', ev => {
+        ev.preventDefault();
+        const fixes = store.get('eventFix', {});
+        fixes[key] = { from: f.elements.namedItem('from').value, to: f.elements.namedItem('to').value, at: Date.now(), venue: e.venue || null, start: e.start || null, was: E.outLabel(e) };
+        store.set('eventFix', fixes); compute('update');
+      });
+      const clr = f.querySelector('[data-unfix]');
+      if (clr) clr.addEventListener('click', () => { const fixes = store.get('eventFix', {}); delete fixes[key]; store.set('eventFix', fixes); compute('update'); });
+    });
 
     // Today stats
     const today = pt().ymd;
