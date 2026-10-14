@@ -1,41 +1,90 @@
 {
  "date": "2026-10-16",
- "generatedAt": "2026-10-12T03:30:00Z",
  "events": [
   {
-   "name": "Huskies at Purdue (on TV)",
-   "start": "17:00",
-   "out": "20:30",
-   "crowd": "mid",
-   "kind": "watch",
-   "note": "U District and sports bars"
-  },
-  {
-   "name": "Snowvana",
-   "venue": "Magnuson Park Hangar 30",
+   "crowd": "small",
+   "kind": "festival",
    "lat": 47.6826,
    "lng": -122.255,
-   "start": "16:00",
+   "name": "Snowvana",
+   "note": "Hours unconfirmed",
    "out": "21:00",
+   "start": "16:00",
+   "unconfirmed": true,
+   "venue": "Magnuson Park Hangar 30"
+  },
+  {
    "crowd": "small",
    "kind": "festival",
-   "note": "Hours unconfirmed",
+   "lat": 47.4447,
+   "lng": -122.2963,
+   "name": "Seattle Latin Dance Festival socials",
+   "note": "Late-night socials; hours unconfirmed",
+   "out": "01:30",
+   "start": "21:00",
+   "unconfirmed": true,
+   "venue": "Hilton Seattle Airport"
+  },
+  {
+   "crowd": "small",
+   "kind": "watch",
+   "name": "ALCS Game 4: Rays at Guardians (on TV)",
+   "note": "TBS; time may move to 5 PM if the NLCS is swept",
+   "out": "18:15",
+   "start": "15:00",
    "unconfirmed": true
   },
   {
-   "name": "Seattle Latin Dance Festival socials",
-   "venue": "Hilton Seattle Airport",
-   "lat": 47.4447,
-   "lng": -122.2963,
-   "start": "21:00",
-   "out": "01:30",
+   "crowd": "mid",
+   "kind": "watch",
+   "name": "Huskies at Purdue (on TV)",
+   "note": "FOX; U District and sports bars",
+   "out": "20:30",
+   "start": "17:00"
+  },
+  {
    "crowd": "small",
-   "kind": "festival",
-   "note": "Late-night socials; hours unconfirmed",
+   "kind": "watch",
+   "name": "NLCS Game 5: Brewers at Dodgers (on TV)",
+   "note": "Only if necessary",
+   "out": "21:15",
+   "start": "18:00",
    "unconfirmed": true
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.6149,
+   "lng": -122.3487,
+   "name": "Sawyer Hill",
+   "note": "Sold out",
+   "out": "21:00",
+   "start": "18:00",
+   "venue": "The Crocodile"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.608,
+   "lng": -122.337,
+   "name": "The 8-Bit Big Band with Seattle Symphony",
+   "out": "22:15",
+   "start": "20:00",
+   "venue": "Benaroya Hall"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.588,
+   "lng": -122.3343,
+   "name": "Pattie Gonia",
+   "out": "22:45",
+   "start": "20:00",
+   "venue": "Showbox SoDo"
   }
  ],
+ "generatedAt": "2026-10-14T03:51:53Z",
  "notes": [
-  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+  "Slight chance of rain after 11 PM."
  ]
 }

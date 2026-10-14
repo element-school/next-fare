@@ -1,53 +1,97 @@
 {
  "date": "2026-10-17",
- "generatedAt": "2026-10-12T03:30:00Z",
  "events": [
   {
-   "name": "Water Lantern Festival",
-   "venue": "West Green Lake Beach",
-   "lat": 47.6797,
-   "lng": -122.345,
-   "start": "17:00",
-   "out": "20:30",
    "crowd": "mid",
    "kind": "festival",
+   "lat": 47.6797,
+   "lng": -122.345,
+   "name": "Water Lantern Festival",
    "note": "Hours unconfirmed",
-   "unconfirmed": true
+   "out": "20:30",
+   "start": "17:00",
+   "unconfirmed": true,
+   "venue": "West Green Lake Beach"
   },
   {
-   "name": "Sounders vs. CF Montr\u00e9al",
-   "venue": "Lumen Field",
+   "crowd": "big",
+   "kind": "sports",
    "lat": 47.5952,
    "lng": -122.3316,
-   "start": "19:30",
+   "name": "Sounders vs. CF Montréal",
    "out": "21:30",
-   "crowd": "big",
-   "kind": "sports"
+   "start": "19:30",
+   "venue": "Lumen Field"
   },
   {
-   "name": "Man\u00e1",
-   "venue": "Climate Pledge Arena",
+   "crowd": "big",
+   "kind": "concert",
    "lat": 47.6221,
    "lng": -122.354,
-   "start": "20:30",
+   "name": "Maná",
    "out": "23:15",
-   "crowd": "big",
-   "kind": "concert"
+   "start": "20:30",
+   "venue": "Climate Pledge Arena"
   },
   {
-   "name": "Seattle Latin Dance Festival socials",
-   "venue": "Hilton Seattle Airport",
-   "lat": 47.4447,
-   "lng": -122.2963,
-   "start": "21:00",
-   "out": "01:30",
    "crowd": "small",
    "kind": "festival",
+   "lat": 47.4447,
+   "lng": -122.2963,
+   "name": "Seattle Latin Dance Festival socials",
    "note": "Late-night socials; hours unconfirmed",
-   "unconfirmed": true
+   "out": "01:30",
+   "start": "21:00",
+   "unconfirmed": true,
+   "venue": "Hilton Seattle Airport"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.614,
+   "lng": -122.3196,
+   "name": "gnash",
+   "note": "Doors 5 PM",
+   "out": "20:00",
+   "start": "17:00",
+   "venue": "Neumos"
+  },
+  {
+   "crowd": "small",
+   "kind": "watch",
+   "name": "ALCS Game 5: Rays at Guardians (on TV)",
+   "note": "TBS",
+   "out": "20:15",
+   "start": "17:00"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.588,
+   "lng": -122.3343,
+   "name": "Tinlicker",
+   "note": "Late electronic show; let-out estimated",
+   "out": "00:30",
+   "start": "20:45",
+   "unconfirmed": true,
+   "venue": "Showbox SoDo"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.6087,
+   "lng": -122.3398,
+   "name": "AHEE",
+   "note": "Late electronic show; let-out estimated",
+   "out": "01:30",
+   "start": "21:00",
+   "unconfirmed": true,
+   "venue": "The Showbox"
   }
  ],
+ "generatedAt": "2026-10-14T03:51:53Z",
  "notes": [
-  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+  "Chance of rain after a dry week.",
+  "Buses replace 2 Line trains between Chinatown-ID and South Bellevue all day."
  ]
 }

@@ -1,27 +1,53 @@
 {
  "date": "2026-10-15",
- "generatedAt": "2026-10-12T03:30:00Z",
  "events": [
   {
-   "name": "Seahawks at Broncos (on TV)",
-   "start": "17:15",
-   "out": "20:30",
-   "crowd": "mid",
+   "crowd": "small",
    "kind": "watch",
-   "note": "Sports-bar crowds head home after the final whistle"
+   "name": "ALCS Game 3: Rays at Guardians (on TV)",
+   "note": "TBS",
+   "out": "18:15",
+   "start": "15:00"
   },
   {
-   "name": "Doja Cat",
-   "venue": "Climate Pledge Arena",
+   "crowd": "mid",
+   "kind": "watch",
+   "name": "Seahawks at Broncos (on TV)",
+   "note": "Thursday Night Football on Prime; sports bars head home after the final whistle",
+   "out": "20:30",
+   "start": "17:15"
+  },
+  {
+   "crowd": "small",
+   "kind": "watch",
+   "name": "NLCS Game 4: Brewers at Dodgers (on TV)",
+   "note": "FS1",
+   "out": "21:15",
+   "start": "18:00"
+  },
+  {
+   "crowd": "big",
+   "kind": "concert",
    "lat": 47.6221,
    "lng": -122.354,
-   "start": "19:30",
+   "name": "Doja Cat",
    "out": "22:45",
-   "crowd": "big",
-   "kind": "concert"
+   "start": "19:30",
+   "venue": "Climate Pledge Arena"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.588,
+   "lng": -122.3343,
+   "name": "PALACE",
+   "out": "22:45",
+   "start": "20:00",
+   "venue": "Showbox SoDo"
   }
  ],
+ "generatedAt": "2026-10-14T03:51:53Z",
  "notes": [
-  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+  "Mostly sunny, high near 69."
  ]
 }

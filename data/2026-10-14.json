@@ -1,8 +1,121 @@
 {
  "date": "2026-10-14",
- "generatedAt": "2026-10-12T03:30:00Z",
- "events": [],
+ "events": [
+  {
+   "crowd": "small",
+   "kind": "watch",
+   "name": "NLCS Game 3: Brewers at Dodgers (on TV)",
+   "note": "FS1; sports bars thin out after the final out",
+   "out": "20:15",
+   "start": "17:00"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.614,
+   "lng": -122.3196,
+   "name": "Hovvdy",
+   "note": "Doors 7 PM; let-out estimated",
+   "out": "22:00",
+   "start": "19:00",
+   "venue": "Neumos"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.6134,
+   "lng": -122.3316,
+   "name": "Cameron Whitcomb",
+   "out": "22:45",
+   "start": "20:00",
+   "venue": "Paramount Theatre"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.6087,
+   "lng": -122.3398,
+   "name": "She Wants Revenge",
+   "out": "22:45",
+   "start": "20:00",
+   "venue": "The Showbox"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.588,
+   "lng": -122.3343,
+   "name": "Ashley Cooke",
+   "out": "22:45",
+   "start": "20:00",
+   "venue": "Showbox SoDo"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.6614,
+   "lng": -122.3138,
+   "name": "Vidura Bandara Rajapaksa",
+   "note": "Let-out estimated",
+   "out": "22:30",
+   "start": "20:00",
+   "venue": "Neptune Theatre"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.666,
+   "lng": -122.3826,
+   "name": "Dave Alvin",
+   "note": "Sold out",
+   "out": "22:30",
+   "start": "20:00",
+   "venue": "Tractor Tavern"
+  }
+ ],
+ "generatedAt": "2026-10-14T03:51:53Z",
  "notes": [
-  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
- ]
+  "No arena or stadium events tonight.",
+  "Dry, partly sunny, high near 64."
+ ],
+ "plan": {
+  "blocks": [
+   {
+    "end": "15:00",
+    "isBreak": true,
+    "play": "Skip the morning and midday. Departures are steady but there's no early spike.",
+    "start": "05:00",
+    "zone": "Break"
+   },
+   {
+    "end": "18:30",
+    "play": "Work downtown, SLU and First Hill, timing a SEA run for the 4 PM arrival wave. Once a trip ends in Seattle, stay there.",
+    "start": "15:00",
+    "strength": "high",
+    "zone": "Seattle core + SEA"
+   },
+   {
+    "end": "19:30",
+    "isBreak": true,
+    "play": "Eat in the city and be rolling again by 7:30.",
+    "start": "18:30",
+    "zone": "Break"
+   },
+   {
+    "end": "21:15",
+    "play": "Optional: catch the 7 PM SEA arrival peak and ride back into the city. Be downtown by 9:15.",
+    "start": "19:30",
+    "strength": "medium",
+    "zone": "SEA arrivals + city bars"
+   },
+   {
+    "end": "23:45",
+    "play": "Work the let-outs from Neumos (about 10) to the Paramount, The Showbox and the Neptune (about 10:30 to 10:45), finishing at Showbox SoDo. Stage a block off the doors, not at the curb.",
+    "start": "21:15",
+    "strength": "high",
+    "zone": "Downtown, Capitol Hill + SoDo let-outs"
+   }
+  ],
+  "headline": "A dry, quiet Wednesday with a 10:15 to 11 PM let-out cluster: Cameron Whitcomb at the Paramount, She Wants Revenge at The Showbox, Ashley Cooke at Showbox SoDo and three smaller rooms. Anchor on 3 to 6:30 PM in the city and SEA, then work the let-outs; skip the morning."
+ }
 }

@@ -1,45 +1,77 @@
 {
  "date": "2026-10-18",
- "generatedAt": "2026-10-12T03:30:00Z",
  "events": [
   {
-   "name": "Water Lantern Festival",
-   "venue": "West Green Lake Beach",
-   "lat": 47.6797,
-   "lng": -122.345,
-   "start": "17:00",
-   "out": "20:30",
    "crowd": "mid",
    "kind": "festival",
+   "lat": 47.6797,
+   "lng": -122.345,
+   "name": "Water Lantern Festival",
    "note": "Hours unconfirmed",
-   "unconfirmed": true
+   "out": "20:30",
+   "start": "17:00",
+   "unconfirmed": true,
+   "venue": "West Green Lake Beach"
   },
   {
-   "name": "Northwest Record Show",
-   "venue": "Seattle Center",
+   "crowd": "small",
+   "kind": "festival",
    "lat": 47.6215,
    "lng": -122.3509,
-   "start": "10:00",
+   "name": "Northwest Record Show",
+   "note": "Hours unconfirmed",
    "out": "16:00",
+   "start": "10:00",
+   "unconfirmed": true,
+   "venue": "Seattle Center"
+  },
+  {
    "crowd": "small",
    "kind": "festival",
+   "lat": 47.5226,
+   "lng": -122.387,
+   "name": "Fauntleroy Fall Festival",
    "note": "Hours unconfirmed",
+   "out": "17:00",
+   "start": "12:00",
+   "unconfirmed": true,
+   "venue": "California Ave SW"
+  },
+  {
+   "crowd": "small",
+   "kind": "watch",
+   "name": "NLCS Game 6: Dodgers at Brewers (on TV)",
+   "note": "Only if necessary",
+   "out": "20:15",
+   "start": "17:00",
    "unconfirmed": true
   },
   {
-   "name": "Fauntleroy Fall Festival",
-   "venue": "California Ave SW",
-   "lat": 47.5226,
-   "lng": -122.387,
-   "start": "12:00",
-   "out": "17:00",
    "crowd": "small",
-   "kind": "festival",
-   "note": "Hours unconfirmed",
-   "unconfirmed": true
+   "kind": "concert",
+   "lat": 47.6149,
+   "lng": -122.3487,
+   "name": "Cheekface",
+   "note": "Sold out",
+   "out": "22:00",
+   "start": "19:00",
+   "venue": "The Crocodile"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.608,
+   "lng": -122.337,
+   "name": "The Head and the Heart with Seattle Symphony",
+   "note": "Time unconfirmed",
+   "out": "22:00",
+   "start": "19:30",
+   "unconfirmed": true,
+   "venue": "Benaroya Hall"
   }
  ],
+ "generatedAt": "2026-10-14T03:51:53Z",
  "notes": [
-  "SEA flight banks use the typical-day profile until the nightly task supplies counts."
+  "Buses replace 2 Line trains between Chinatown-ID and South Bellevue all day."
  ]
 }
