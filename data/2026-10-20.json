@@ -4,22 +4,13 @@
   {
    "crowd": "mid",
    "kind": "convention",
-   "lat": 47.6117,
-   "lng": -122.3325,
    "name": "NCS Annual Meeting",
-   "note": "Runs Oct 20-23; hours unconfirmed",
-   "out": "17:00",
+   "note": "1,000+ attendees",
+   "out": "17:15",
+   "outBasis": "Rough estimate: meeting runs Oct 20-23, venue and hours not published",
+   "outFrom": "16:30",
+   "outTo": "18:00",
    "start": "08:00",
-   "unconfirmed": true,
-   "venue": "Seattle Convention Center"
-  },
-  {
-   "crowd": "small",
-   "kind": "watch",
-   "name": "ALCS Game 7: Guardians at Rays (on TV)",
-   "note": "Only if necessary",
-   "out": "20:15",
-   "start": "17:00",
    "unconfirmed": true
   },
   {
@@ -28,22 +19,25 @@
    "lat": 47.6221,
    "lng": -122.354,
    "name": "Kraken vs. Red Wings",
-   "note": "Listed 6:40 PM",
-   "out": "21:30",
+   "out": "21:12",
+   "outBasis": "NHL about 2h30 from puck drop",
+   "outFrom": "21:00",
+   "outTo": "21:25",
    "start": "18:40",
-   "unconfirmed": true,
    "venue": "Climate Pledge Arena"
   },
   {
-   "crowd": "small",
+   "crowd": "big",
    "kind": "concert",
-   "lat": 47.614,
-   "lng": -122.3196,
-   "name": "SLIFT",
-   "note": "Doors 7 PM",
-   "out": "22:00",
+   "lat": 47.5932,
+   "lng": -122.3323,
+   "name": "Rise Against",
+   "out": "22:15",
+   "outBasis": "Concert with openers: about 3 to 3.5 h after a 7 PM listing",
+   "outFrom": "21:45",
+   "outTo": "22:45",
    "start": "19:00",
-   "venue": "Neumos"
+   "venue": "WaMu Theater"
   },
   {
    "crowd": "mid",
@@ -51,23 +45,18 @@
    "lat": 47.6134,
    "lng": -122.3316,
    "name": "Sara Bareilles",
-   "note": "Night two; venue unconfirmed",
-   "out": "22:30",
+   "note": "Night two",
+   "out": "22:45",
+   "outBasis": "Rough estimate: start time not confirmed",
+   "outFrom": "22:15",
+   "outTo": "23:15",
    "start": "20:00",
    "unconfirmed": true,
    "venue": "Paramount Theatre"
-  },
-  {
-   "crowd": "mid",
-   "kind": "concert",
-   "lat": 47.588,
-   "lng": -122.3343,
-   "name": "The Blasting Company",
-   "out": "22:30",
-   "start": "20:00",
-   "venue": "Showbox SoDo"
   }
  ],
- "generatedAt": "2026-10-14T03:51:53Z",
- "notes": []
+ "generatedAt": "2026-10-16T03:55:00Z",
+ "notes": [
+  "Slight chance of rain."
+ ]
 }

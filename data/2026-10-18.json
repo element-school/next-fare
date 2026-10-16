@@ -2,49 +2,18 @@
  "date": "2026-10-18",
  "events": [
   {
-   "crowd": "mid",
-   "kind": "festival",
-   "lat": 47.6797,
-   "lng": -122.345,
-   "name": "Water Lantern Festival",
-   "note": "Hours unconfirmed",
-   "out": "20:30",
-   "start": "17:00",
-   "unconfirmed": true,
-   "venue": "West Green Lake Beach"
-  },
-  {
    "crowd": "small",
    "kind": "festival",
    "lat": 47.6215,
    "lng": -122.3509,
    "name": "Northwest Record Show",
-   "note": "Hours unconfirmed",
-   "out": "16:00",
+   "out": "17:00",
+   "outBasis": "Rough estimate: listed 10 AM to 5 PM",
+   "outFrom": "16:30",
+   "outTo": "17:30",
    "start": "10:00",
    "unconfirmed": true,
-   "venue": "Seattle Center"
-  },
-  {
-   "crowd": "small",
-   "kind": "festival",
-   "lat": 47.5226,
-   "lng": -122.387,
-   "name": "Fauntleroy Fall Festival",
-   "note": "Hours unconfirmed",
-   "out": "17:00",
-   "start": "12:00",
-   "unconfirmed": true,
-   "venue": "California Ave SW"
-  },
-  {
-   "crowd": "small",
-   "kind": "watch",
-   "name": "NLCS Game 6: Dodgers at Brewers (on TV)",
-   "note": "Only if necessary",
-   "out": "20:15",
-   "start": "17:00",
-   "unconfirmed": true
+   "venue": "Seattle Center Armory"
   },
   {
    "crowd": "small",
@@ -54,24 +23,31 @@
    "name": "Cheekface",
    "note": "Sold out",
    "out": "22:00",
+   "outBasis": "Rough estimate: 7 PM listing",
+   "outFrom": "21:30",
+   "outTo": "22:30",
    "start": "19:00",
+   "unconfirmed": true,
    "venue": "The Crocodile"
   },
   {
    "crowd": "mid",
    "kind": "concert",
-   "lat": 47.608,
-   "lng": -122.337,
-   "name": "The Head and the Heart with Seattle Symphony",
-   "note": "Time unconfirmed",
-   "out": "22:00",
-   "start": "19:30",
+   "lat": 47.6134,
+   "lng": -122.3316,
+   "name": "Shaboozey",
+   "out": "22:45",
+   "outBasis": "Rough estimate: start time not confirmed",
+   "outFrom": "22:15",
+   "outTo": "23:15",
+   "start": "20:00",
    "unconfirmed": true,
-   "venue": "Benaroya Hall"
+   "venue": "Paramount Theatre"
   }
  ],
- "generatedAt": "2026-10-14T03:51:53Z",
+ "generatedAt": "2026-10-16T03:55:00Z",
  "notes": [
-  "Buses replace 2 Line trains between Chinatown-ID and South Bellevue all day."
+  "Buses replace 2 Line trains between Chinatown-ID and South Bellevue all day.",
+  "Northbound I-405 closed in Bellevue until 4 AM Monday."
  ]
 }

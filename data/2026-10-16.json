@@ -2,54 +2,15 @@
  "date": "2026-10-16",
  "events": [
   {
-   "crowd": "small",
-   "kind": "festival",
-   "lat": 47.6826,
-   "lng": -122.255,
-   "name": "Snowvana",
-   "note": "Hours unconfirmed",
-   "out": "21:00",
-   "start": "16:00",
-   "unconfirmed": true,
-   "venue": "Magnuson Park Hangar 30"
-  },
-  {
-   "crowd": "small",
-   "kind": "festival",
-   "lat": 47.4447,
-   "lng": -122.2963,
-   "name": "Seattle Latin Dance Festival socials",
-   "note": "Late-night socials; hours unconfirmed",
-   "out": "01:30",
-   "start": "21:00",
-   "unconfirmed": true,
-   "venue": "Hilton Seattle Airport"
-  },
-  {
-   "crowd": "small",
-   "kind": "watch",
-   "name": "ALCS Game 4: Rays at Guardians (on TV)",
-   "note": "TBS; time may move to 5 PM if the NLCS is swept",
-   "out": "18:15",
-   "start": "15:00",
-   "unconfirmed": true
-  },
-  {
    "crowd": "mid",
    "kind": "watch",
    "name": "Huskies at Purdue (on TV)",
    "note": "FOX; U District and sports bars",
-   "out": "20:30",
+   "out": "20:27",
+   "outBasis": "College football about 3h25 from kickoff",
+   "outFrom": "20:10",
+   "outTo": "20:45",
    "start": "17:00"
-  },
-  {
-   "crowd": "small",
-   "kind": "watch",
-   "name": "NLCS Game 5: Brewers at Dodgers (on TV)",
-   "note": "Only if necessary",
-   "out": "21:15",
-   "start": "18:00",
-   "unconfirmed": true
   },
   {
    "crowd": "small",
@@ -58,33 +19,239 @@
    "lng": -122.3487,
    "name": "Sawyer Hill",
    "note": "Sold out",
-   "out": "21:00",
+   "out": "21:07",
+   "outBasis": "Rough estimate: 6 PM listing, set length not found",
+   "outFrom": "20:45",
+   "outTo": "21:30",
    "start": "18:00",
+   "unconfirmed": true,
    "venue": "The Crocodile"
+  },
+  {
+   "crowd": "small",
+   "kind": "comedy",
+   "lat": 47.6008,
+   "lng": -122.334,
+   "name": "Comedy Underground early show",
+   "note": "21+; lineup not confirmed",
+   "out": "21:25",
+   "outBasis": "Comedy: 75-95 min after the posted show time",
+   "outFrom": "21:15",
+   "outTo": "21:35",
+   "start": "20:00",
+   "unconfirmed": true,
+   "venue": "Comedy Underground"
   },
   {
    "crowd": "mid",
    "kind": "concert",
-   "lat": 47.608,
-   "lng": -122.337,
+   "lat": 47.6081,
+   "lng": -122.3367,
    "name": "The 8-Bit Big Band with Seattle Symphony",
    "out": "22:15",
+   "outBasis": "Rough estimate: run time not published",
+   "outFrom": "21:45",
+   "outTo": "22:45",
    "start": "20:00",
+   "unconfirmed": true,
    "venue": "Benaroya Hall"
   },
   {
    "crowd": "mid",
    "kind": "concert",
-   "lat": 47.588,
+   "lat": 47.6091,
    "lng": -122.3343,
-   "name": "Pattie Gonia",
-   "out": "22:45",
+   "name": "Gary Clark Jr.",
+   "out": "22:17",
+   "outBasis": "Rough estimate: no opener found, set length not published",
+   "outFrom": "21:50",
+   "outTo": "22:45",
    "start": "20:00",
+   "unconfirmed": true,
+   "venue": "5th Avenue Theatre"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.6134,
+   "lng": -122.3316,
+   "name": "Malcolm Todd",
+   "out": "22:35",
+   "outBasis": "Tour reports: headliner about 9:05, 80-90 min set",
+   "outFrom": "22:20",
+   "outTo": "22:50",
+   "start": "20:00",
+   "venue": "Paramount Theatre"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.6614,
+   "lng": -122.3138,
+   "name": "almost monday",
+   "out": "22:37",
+   "outBasis": "Rough estimate: opener Sun Room, headliner 45-75 min after listed time",
+   "outFrom": "22:15",
+   "outTo": "23:00",
+   "start": "20:00",
+   "unconfirmed": true,
+   "venue": "Neptune Theatre"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.5877,
+   "lng": -122.3346,
+   "name": "Pattie Gonia",
+   "note": "21+",
+   "out": "22:52",
+   "outBasis": "Rough estimate: two openers, headliner 45-75 min after listed time",
+   "outFrom": "22:30",
+   "outTo": "23:15",
+   "start": "20:00",
+   "unconfirmed": true,
    "venue": "Showbox SoDo"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.6519,
+   "lng": -122.3537,
+   "name": "Kiefer",
+   "note": "Start time not confirmed",
+   "out": "22:45",
+   "outBasis": "Rough estimate",
+   "outFrom": "22:00",
+   "outTo": "23:30",
+   "start": "20:00",
+   "unconfirmed": true,
+   "venue": "Nectar Lounge"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.614,
+   "lng": -122.3196,
+   "name": "Bebe Stockwell",
+   "note": "Start time not confirmed",
+   "out": "22:45",
+   "outBasis": "Rough estimate",
+   "outFrom": "22:00",
+   "outTo": "23:30",
+   "start": "20:00",
+   "unconfirmed": true,
+   "venue": "Barboza"
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.6658,
+   "lng": -122.3826,
+   "name": "Joshua Burnside",
+   "note": "Start time not confirmed",
+   "out": "22:45",
+   "outBasis": "Rough estimate",
+   "outFrom": "22:00",
+   "outTo": "23:30",
+   "start": "20:00",
+   "unconfirmed": true,
+   "venue": "Tractor Tavern"
+  },
+  {
+   "crowd": "small",
+   "kind": "comedy",
+   "lat": 47.6008,
+   "lng": -122.334,
+   "name": "Comedy Underground late show",
+   "note": "21+; lineup not confirmed",
+   "out": "23:55",
+   "outBasis": "Comedy: 75-95 min after the posted show time",
+   "outFrom": "23:45",
+   "outTo": "00:05",
+   "start": "22:30",
+   "unconfirmed": true,
+   "venue": "Comedy Underground"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.6087,
+   "lng": -122.3398,
+   "name": "Know Good",
+   "note": "18+",
+   "out": "02:00",
+   "outBasis": "Rough estimate: doors 11 PM, three acts, no end time posted",
+   "outFrom": "01:30",
+   "outTo": "02:30",
+   "start": "23:00",
+   "unconfirmed": true,
+   "venue": "The Showbox"
   }
  ],
- "generatedAt": "2026-10-14T03:51:53Z",
+ "generatedAt": "2026-10-16T03:55:00Z",
  "notes": [
-  "Slight chance of rain after 11 PM."
- ]
+  "Northbound I-405 closed in Bellevue, SE 8th to NE 4th, 11 PM Friday to 4 AM Monday.",
+  "Mostly sunny; 20% chance of rain after 11 PM."
+ ],
+ "plan": {
+  "blocks": [
+   {
+    "end": "06:45",
+    "play": "Downtown hotel core to SEA from about 4:45, or an Eastside reservation if one is booked. Airport departures build from 6 AM.",
+    "start": "04:30",
+    "strength": "high",
+    "zone": "Downtown Seattle hotels to SEA"
+   },
+   {
+    "end": "07:30",
+    "play": "After a SEA drop-off, take a curb ReMatch within 10 minutes or leave right away.",
+    "start": "06:45",
+    "strength": "medium",
+    "zone": "SEA return"
+   },
+   {
+    "end": "09:45",
+    "play": "Bellevue hotel checkouts to SEA; Friday is a big fly-home day.",
+    "start": "07:30",
+    "strength": "medium",
+    "zone": "Bellevue and Redmond hotels"
+   },
+   {
+    "end": "21:00",
+    "isBreak": true,
+    "play": "Break.",
+    "start": "09:45",
+    "zone": "Break"
+   },
+   {
+    "end": "22:00",
+    "play": "Short Pike/Pine rides as bars fill. Optional.",
+    "start": "21:00",
+    "strength": "low",
+    "zone": "Capitol Hill"
+   },
+   {
+    "end": "23:15",
+    "play": "Downtown let-outs: Benaroya and 5th Avenue about 10 PM, Paramount about 10:20 to 10:50. Wait a few blocks off the venue curbs.",
+    "start": "22:00",
+    "strength": "high",
+    "zone": "Downtown theaters and Belltown"
+   },
+   {
+    "end": "00:45",
+    "play": "Stay in the core between bar hops. Showbox SoDo lets out about 10:30 to 11:15.",
+    "start": "23:15",
+    "strength": "medium",
+    "zone": "Capitol Hill and Belltown"
+   },
+   {
+    "end": "02:30",
+    "play": "Bar close wave about 1:30 to 2:30 AM in Capitol Hill, Belltown and Pioneer Square.",
+    "start": "00:45",
+    "strength": "high",
+    "zone": "Bar close: Capitol Hill, Belltown, Pioneer Square"
+   }
+  ],
+  "headline": "Friday: an early downtown-to-SEA morning, or a night with four mid-size downtown let-outs from about 10 to 11:15 PM, then bar close."
+ }
 }

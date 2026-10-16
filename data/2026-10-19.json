@@ -2,48 +2,23 @@
  "date": "2026-10-19",
  "events": [
   {
-   "crowd": "small",
-   "kind": "watch",
-   "name": "ALCS Game 6: Guardians at Rays (on TV)",
-   "note": "TBS; only if necessary, may move to 5 PM",
-   "out": "17:15",
-   "start": "14:00",
-   "unconfirmed": true
-  },
-  {
-   "crowd": "small",
-   "kind": "watch",
-   "name": "NLCS Game 7: Dodgers at Brewers (on TV)",
-   "note": "Only if necessary",
-   "out": "20:15",
-   "start": "17:00",
-   "unconfirmed": true
-  },
-  {
-   "crowd": "small",
-   "kind": "concert",
-   "lat": 47.614,
-   "lng": -122.3196,
-   "name": "Frog",
-   "note": "Doors 7 PM",
-   "out": "22:00",
-   "start": "19:00",
-   "venue": "Neumos"
-  },
-  {
    "crowd": "mid",
    "kind": "concert",
    "lat": 47.6134,
    "lng": -122.3316,
    "name": "Sara Bareilles",
    "note": "Night one of two",
-   "out": "22:30",
+   "out": "22:45",
+   "outBasis": "Rough estimate: start time not confirmed",
+   "outFrom": "22:15",
+   "outTo": "23:15",
    "start": "20:00",
+   "unconfirmed": true,
    "venue": "Paramount Theatre"
   }
  ],
- "generatedAt": "2026-10-14T03:51:53Z",
+ "generatedAt": "2026-10-16T03:55:00Z",
  "notes": [
-  "Rain likely."
+  "Chance of rain."
  ]
 }

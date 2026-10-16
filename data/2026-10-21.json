@@ -1,0 +1,32 @@
+{
+ "date": "2026-10-21",
+ "events": [
+  {
+   "crowd": "mid",
+   "kind": "convention",
+   "name": "NCS Annual Meeting",
+   "out": "17:15",
+   "outBasis": "Rough estimate: venue and hours not published",
+   "outFrom": "16:30",
+   "outTo": "18:00",
+   "start": "08:00",
+   "unconfirmed": true
+  },
+  {
+   "crowd": "small",
+   "kind": "concert",
+   "lat": 47.6149,
+   "lng": -122.3487,
+   "name": "The War and Treaty",
+   "out": "21:45",
+   "outBasis": "Rough estimate: 7 PM listing",
+   "outFrom": "21:15",
+   "outTo": "22:15",
+   "start": "19:00",
+   "unconfirmed": true,
+   "venue": "The Crocodile"
+  }
+ ],
+ "generatedAt": "2026-10-16T03:55:00Z",
+ "notes": []
+}

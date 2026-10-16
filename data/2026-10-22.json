@@ -1,0 +1,60 @@
+{
+ "date": "2026-10-22",
+ "events": [
+  {
+   "crowd": "mid",
+   "kind": "convention",
+   "name": "NCS Annual Meeting",
+   "out": "17:15",
+   "outBasis": "Rough estimate: venue and hours not published",
+   "outFrom": "16:30",
+   "outTo": "18:00",
+   "start": "08:00",
+   "unconfirmed": true
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.6091,
+   "lng": -122.3343,
+   "name": "Lyle Lovett and his Large Band",
+   "out": "21:37",
+   "outBasis": "Rough estimate: 7 PM listing, set length not published",
+   "outFrom": "21:15",
+   "outTo": "22:00",
+   "start": "19:00",
+   "unconfirmed": true,
+   "venue": "5th Avenue Theatre"
+  },
+  {
+   "crowd": "big",
+   "kind": "sports",
+   "lat": 47.6221,
+   "lng": -122.354,
+   "name": "Kraken vs. Utah",
+   "out": "21:32",
+   "outBasis": "NHL about 2h30 from puck drop",
+   "outFrom": "21:20",
+   "outTo": "21:45",
+   "start": "19:00",
+   "venue": "Climate Pledge Arena"
+  },
+  {
+   "crowd": "mid",
+   "kind": "concert",
+   "lat": 47.6134,
+   "lng": -122.3316,
+   "name": "Geese",
+   "note": "Night one of two",
+   "out": "22:37",
+   "outBasis": "Rough estimate: 8 PM listing with an opener likely",
+   "outFrom": "22:15",
+   "outTo": "23:00",
+   "start": "20:00",
+   "unconfirmed": true,
+   "venue": "Paramount Theatre"
+  }
+ ],
+ "generatedAt": "2026-10-16T03:55:00Z",
+ "notes": []
+}
